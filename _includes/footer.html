@@ -1,9 +1,10 @@
 <div class="page__footer-follow">
+  <div class="footer-brand">
+    <img src="/assets/images/kcdp_logos_banner.png" alt="Kansas City Data Professionals logo">
+    <p class="footer-tagline">{{ site.tagline }}</p>
+  </div>
 
   <ul class="socials">
-
-    <li></li>
-
     {% for link in site.footer.links %}
     {% if link.url %}
     <li class="socials__item">
@@ -13,15 +14,9 @@
     </li>
     {% endif %}
     {% endfor %}
-
-    <li class="socials__item">
-      <a href="/imprint" rel="noopener noreferrer nofollow" target="_blank" class="socials__item__link" title="Imprint">
-        <i class="fas fa-gavel footer-icon" aria-hidden="true"></i>
-      </a>
-    </li>
-
   </ul>
+</div>
 
-  </div>
-
-  <div class="page__footer-copyright">&copy; {{ site.time | date: '%Y' }} {{ site.footer.copyright | default: site.title }}. {% if site.footer.creator %} Created by <a rel="noopener noreferrer nofollow" target="_blank"href="{{site.footer.creator.url}}">{{site.footer.creator.name}}</a>{% endif %}</div>
+<div class="page__footer-copyright">
+  &copy; {{ site.time | date: '%Y' }} {{ site.footer.copyright | default: site.title }}.
+</div>
