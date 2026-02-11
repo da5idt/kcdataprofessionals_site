@@ -53,9 +53,17 @@ $(function() {
     }, 400);
   });
 
+  var getMastheadOffset = function() {
+    var masthead = document.querySelector(".masthead");
+    return masthead ? Math.ceil(masthead.getBoundingClientRect().height) + 8 : 20;
+  };
+
   // Smooth scrolling
   var scroll = new SmoothScroll('a[href*="#"]', {
-    offset: 20,
+    header: ".masthead",
+    offset: function() {
+      return 8;
+    },
     speed: 400,
     speedAsDuration: true,
     durationMax: 500
@@ -73,7 +81,7 @@ $(function() {
       nestedClass: "active", // applied to the parent items
 
       // Offset & reflow
-      offset: 20, // how far from the top of the page to activate a content area
+      offset: getMastheadOffset, // how far from the top of the page to activate a content area
       reflow: true, // if true, listen for reflows
 
       // Event support
