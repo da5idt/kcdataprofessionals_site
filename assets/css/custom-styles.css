@@ -68,3 +68,14 @@ a:hover,
   font-weight: 600;
   color: var(--kcdp-primary);
 }
+
+.page__footer-follow .socials {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.page__footer-follow .socials__item {
+  margin-left: 0;
+}

@@ -15,7 +15,7 @@ title_separator          : "-"
 subtitle                 : " " # Displayed in the masthead below the title, use " " for no subtitle
 tagline                  : "Connecting Kansas City's data community."
 url                      : "https://kcdataprofessionals.org" # the base hostname & protocol for your site
-baseurl                  : # the subpath of your site, e.g. "/blog"
+baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "da5idt/kcdataprofessionals_site" # GitHub username/repo-name
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 logo                     : "/assets/images/kcdp_logos_banner.png" # Site logo displayed in the masthead
