@@ -95,6 +95,12 @@ a:hover,
   margin-left: 0;
 }
 
+.page__footer-follow .socials li + li::before,
+.page__footer-follow .socials__item::before {
+  content: none;
+  padding: 0;
+}
+
 #objectives ul,
 #objectives li {
   text-align: left;
