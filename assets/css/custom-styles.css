@@ -22,6 +22,12 @@ a:hover,
 .btn--info {
   background-color: var(--kcdp-primary);
   border-color: var(--kcdp-primary);
+  color: #fff;
+}
+
+.page__content a.btn--primary,
+.page__content a.btn--info {
+  color: #fff;
 }
 
 .btn--primary:hover,
@@ -30,6 +36,14 @@ a:hover,
 .btn--info:focus {
   background-color: var(--kcdp-primary-dark);
   border-color: var(--kcdp-primary-dark);
+  color: #fff;
+}
+
+.page__content a.btn--primary:hover,
+.page__content a.btn--info:hover,
+.page__content a.btn--primary:focus,
+.page__content a.btn--info:focus {
+  color: #fff;
 }
 
 .box--primary,
@@ -38,7 +52,8 @@ a:hover,
 }
 
 .box--primary {
-  background-color: rgba(36, 76, 102, 0.08);
+  border: 0;
+  background-color: transparent;
 }
 
 .notice--primary {
@@ -78,4 +93,9 @@ a:hover,
 
 .page__footer-follow .socials__item {
   margin-left: 0;
+}
+
+#objectives ul,
+#objectives li {
+  text-align: left;
 }
