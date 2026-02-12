@@ -60,10 +60,7 @@ $(function() {
 
   // Smooth scrolling
   var scroll = new SmoothScroll('a[href*="#"]', {
-    header: ".masthead",
-    offset: function() {
-      return 8;
-    },
+    offset: getMastheadOffset,
     speed: 400,
     speedAsDuration: true,
     durationMax: 500
