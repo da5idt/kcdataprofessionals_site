@@ -1,5 +1,7 @@
 # Troubleshooting
 
+[Parent page: README](../README.md)
+
 ## Table of contents
 
 - [Site does not reflect `_config.yml` changes](#site-does-not-reflect-_configyml-changes)

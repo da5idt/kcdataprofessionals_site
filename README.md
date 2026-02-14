@@ -49,7 +49,9 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 
 ## Contributor docs
 
-- Architecture: `docs/architecture.md`
-- Editing guide: `docs/editing-guide.md`
-- Contributing workflow: `docs/contributing.md`
-- Troubleshooting: `docs/troubleshooting.md`
+- [Contributing hub](docs/contributing.md)
+- [Local Setup Instructions](docs/local-setup-instructions.md)
+- [Editing Content](docs/editing-content.md)
+- [Contribution Workflow](docs/contribution-workflow.md)
+- [Architecture](docs/architecture.md)
+- [Troubleshooting](docs/troubleshooting.md)

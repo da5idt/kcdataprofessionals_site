@@ -1,5 +1,7 @@
 # Architecture
 
+[Parent page: README](../README.md)
+
 ## Table of contents
 
 - [Overview](#overview)
