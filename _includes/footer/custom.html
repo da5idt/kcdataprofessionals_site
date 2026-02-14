@@ -1,3 +1,57 @@
 <!-- start custom footer snippets -->
 
+<script>
+  (function () {
+    function setExternalLinksToNewTab() {
+      var anchors = document.querySelectorAll("a[href]");
+
+      Array.prototype.forEach.call(anchors, function (anchor) {
+        var href = anchor.getAttribute("href");
+        if (!href) return;
+
+        // Skip fragment, protocol-relative non-http, and non-web schemes.
+        if (
+          href.charAt(0) === "#" ||
+          href.indexOf("mailto:") === 0 ||
+          href.indexOf("tel:") === 0 ||
+          href.indexOf("javascript:") === 0
+        ) {
+          return;
+        }
+
+        var url;
+        try {
+          url = new URL(anchor.href, window.location.href);
+        } catch (e) {
+          return;
+        }
+
+        var isHttp = url.protocol === "http:" || url.protocol === "https:";
+        var isExternal = url.origin !== window.location.origin;
+
+        if (isHttp && isExternal) {
+          anchor.setAttribute("target", "_blank");
+
+          var currentRel = anchor.getAttribute("rel") || "";
+          var relParts = currentRel
+            .split(/\s+/)
+            .filter(Boolean);
+
+          ["noopener", "noreferrer"].forEach(function (value) {
+            if (relParts.indexOf(value) === -1) relParts.push(value);
+          });
+
+          anchor.setAttribute("rel", relParts.join(" "));
+        }
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setExternalLinksToNewTab);
+    } else {
+      setExternalLinksToNewTab();
+    }
+  })();
+</script>
+
 <!-- end custom footer snippets -->
