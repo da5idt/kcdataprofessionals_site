@@ -1,35 +1,55 @@
-# OneFlow Jekyll Theme
+# kcdataprofessionals_site
 
-## What is it
-OneFlow is a Jekyll Theme designed to create stunning, clear and practical modern One-Pager Websites. 
-It offers lots of features and customization options, so you can easily create a Site that matches your own or your client's wishes for design and structure.  
-Check out the [Theme Website](https://oneflow-jekyll-theme.github.io/) showcasing and explaining the various opportunities the theme offers, and also check out the [first example website](https://oneflow-jekyll-theme-example-one.github.io/) and the [second example website](https://oneflow-jekyll-theme-example-two.github.io/) to see a few of the different design options the theme offers.  
+This repository contains the Kansas City Data Professionals public website at [kcdataprofessionals.org](https://kcdataprofessionals.org), built with Jekyll and based on the OneFlow theme structure. Site settings and shared metadata are defined in `_config.yml`, page content is stored in `_pages/`, reusable UI building blocks are in `_includes/`, and theme/layout templates live in `_layouts/` and `_sass/`.
 
-## Full documentation
-Extensive documentation for OneFlow is available [here](https://perstarke-webdev.de/oneflow-jekyll-theme).
+## Table of contents
 
-## Getting started & development 
+- [Quick start](#quick-start)
+- [Option A: Local Ruby + Bundler](#option-a-local-ruby--bundler)
+- [Option B: Docker](#option-b-docker)
+- [Where do I change X?](#where-do-i-change-x)
+- [Contributor docs](#contributor-docs)
 
-### Fork and clone this repository
-The **vision of this theme** is **simplicity and accessibility**, to easily create stunning websites from scratch.  
-Therefore, it's not available as a classic gem-based Jekyll theme, but as a ready-to-use GitHub repository that you just need to fork and clone.  
-So, get ahead and make a fork of this repository, rename it if you like to suit the name of the site you want to create, locally clone it, and directly start editing!
+## Quick start
 
-Alternatively, you can just [download the theme as a zip file](https://oneflow-jekyll-theme.github.io/theme-download/oneflow-jekyll-theme.zip) to immediately get started.
+### Option A: Local Ruby + Bundler
+1. Install Ruby and Bundler.
+2. Install dependencies:
+   ```bash
+   bundle install
+   ```
+3. Run the site locally:
+   ```bash
+   bundle exec jekyll serve --livereload
+   ```
+4. Open `http://127.0.0.1:4000`.
 
-### How to start a development docker container
-To test your website and see all of your changes in real-time without deploying it online, you can easily build your site locally.  
-- Make sure you have [Bundler](https://bundler.io/) and [Docker](https://www.docker.com/) installed.  
-- Open up a terminal, navigate to your local repository, and run ```docker compose up```.
+### Option B: Docker
+This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service.
 
-Your site will then be visible at ```http://0.0.0.0:4000/``` in any browser.
+1. Run:
+   ```bash
+   docker compose up
+   ```
+2. Open `http://127.0.0.1:4000`.
 
-## News
+## Where do I change X?
 
-- OneFlow is now featured on [Jamstackthemes](https://jamstackthemes.dev/theme/oneflow/)
-- OneFlow is now featured on [jeyll-themes.com](https://jekyll-themes.com/perstarke-webdev/oneflow-jekyll-theme/)
-- OneFlow has been used to create the [arc42 Trainings dates page](https://trainings.arc42.org/)
+- Homepage sections/content: `_pages/index.html`
+- Add or edit pages: `_pages/*.md` or `_pages/*.html`
+- Navigation links in masthead: `_data/navigation.yml`
+- Header (masthead) markup/behavior: `_includes/masthead.html`
+- Footer markup: `_includes/footer.html`
+- Social links shown in footer: `_config.yml` under `footer.links`
+- Site-wide settings (title, URL, logo, background, footer metadata): `_config.yml`
+- Layout wrappers: `_layouts/default.html`, `_layouts/page.html`
+- Styling:
+  - Theme imports/skin: `assets/css/main.scss`
+  - Site-specific overrides: `assets/css/custom-styles.css`
 
-- Version 1.1 contains:
-  - A default 404 page
-  - A fix for responsiveness of the page hero on mobile screens in landscape mode
+## Contributor docs
+
+- Architecture: `docs/architecture.md`
+- Editing guide: `docs/editing-guide.md`
+- Contributing workflow: `docs/contributing.md`
+- Troubleshooting: `docs/troubleshooting.md`
