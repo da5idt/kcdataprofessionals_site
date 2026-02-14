@@ -2,6 +2,7 @@
   --kcdp-primary: #244c66;
   --kcdp-primary-dark: #1b384d;
   --kcdp-primary-light: #2f6280;
+  --kcdp-primary-hover: #0b6a9a;
 }
 
 a,
@@ -19,14 +20,18 @@ a:hover,
 }
 
 .btn--primary,
-.btn--info {
+.btn--info,
+.btn--primary:visited,
+.btn--info:visited {
   background-color: var(--kcdp-primary);
   border-color: var(--kcdp-primary);
   color: #fff;
 }
 
 .page__content a.btn--primary,
-.page__content a.btn--info {
+.page__content a.btn--info,
+.page__content a.btn--primary:visited,
+.page__content a.btn--info:visited {
   color: #fff;
 }
 
@@ -34,8 +39,8 @@ a:hover,
 .btn--info:hover,
 .btn--primary:focus,
 .btn--info:focus {
-  background-color: var(--kcdp-primary-dark);
-  border-color: var(--kcdp-primary-dark);
+  background-color: var(--kcdp-primary-hover);
+  border-color: var(--kcdp-primary-hover);
   color: #fff;
 }
 
@@ -103,6 +108,16 @@ a:hover,
 .page__footer-follow .socials__item::before {
   content: none;
   padding: 0;
+}
+
+.socials__item__link,
+.socials__item__link:visited {
+  background-color: var(--kcdp-primary);
+}
+
+.socials__item__link:hover,
+.socials__item__link:focus {
+  background-color: var(--kcdp-primary-hover);
 }
 
 #objectives ul,
