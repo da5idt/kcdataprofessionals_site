@@ -109,3 +109,107 @@ a:hover,
 #objectives li {
   text-align: left;
 }
+
+.supported-by-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.supported-by-item {
+  text-align: center;
+}
+
+.supported-by-logo {
+  max-height: 3rem; /* 75% of masthead logo max-height (4rem) */
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.supported-by-name {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.home-page #purpose > *:not(h1),
+.home-page #mission > *:not(h1),
+.home-page #objectives > *:not(h1),
+.home-page #join > *:not(h1),
+.home-page #events > *:not(h1) {
+  max-width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-page #purpose > p,
+.home-page #mission > p:first-of-type,
+.home-page #join > p:first-of-type,
+.home-page #events > p:first-of-type {
+  text-align: left;
+}
+
+.sponsor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.sponsor-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  text-align: center;
+}
+
+.sponsor-card__logo {
+  max-height: 72px;
+  width: auto;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.75rem;
+}
+
+.sponsorship-page .page__content {
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sponsorship-page .page__content p,
+.sponsorship-page .page__content li {
+  text-align: left;
+}
+
+.sponsorship-page .page__content ul {
+  text-align: left;
+  padding-left: 1.2rem;
+}
+
+.sponsorship-page .sponsor-grid p,
+.sponsorship-page .sponsor-grid li {
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .home-page #purpose > *:not(h1),
+  .home-page #mission > *:not(h1),
+  .home-page #objectives > *:not(h1),
+  .home-page #join > *:not(h1),
+  .home-page #events > *:not(h1) {
+    max-width: 90%;
+  }
+
+  .sponsorship-page .page__content {
+    max-width: 90%;
+  }
+}
+
+.sponsorship-page .current-sponsors-heading,
+.sponsorship-page .sponsor-grid h3 {
+  text-align: center;
+}

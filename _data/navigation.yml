@@ -15,3 +15,6 @@ main:
   - title: "Events"
     url: /#events
     blank: false
+  - title: "Sponsorship"
+    url: /sponsorship
+    blank: false
