@@ -24,12 +24,14 @@ This is a Jekyll site that renders pages from source files and templates into `_
 ## Directory map
 
 - `_config.yml`: global site configuration (site identity, URL, logo, background, footer links, plugins, defaults)
-- `_pages/`: page source files with front matter and content (for this repo, includes `index.html` and `imprint.md`)
+- `_pages/`: page source files with front matter and content (for this repo, includes `index.html`, `imprint.md`, and `sponsorship.md`)
 - `_layouts/`: page templates (`default.html` and `page.html`)
 - `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`)
+- `_includes/footer/custom.html`: site-specific footer scripts (for example, link handling behavior)
 - `_data/navigation.yml`: main navigation items rendered in the masthead
 - `assets/css/main.scss`: theme and skin imports
 - `assets/css/custom-styles.css`: custom visual overrides for this site
+- `.github/workflows/`: automation workflows (including `agentics-maintenance.yml`, `daily-doc-updater.md`, `daily-doc-updater.lock.yml`, `daily-repo-status.md`, and `daily-repo-status.lock.yml`)
 
 ## How rendering is wired
 
@@ -62,6 +64,7 @@ Important: changes to `_config.yml` usually require restarting `jekyll serve` be
 `_pages/` contains routable content files. In this repo:
 - `_pages/index.html` is the homepage (`permalink: /`) and contains section markup (`id="purpose"`, `id="mission"`, etc.)
 - `_pages/imprint.md` is a standalone page
+- `_pages/sponsorship.md` is the sponsorship page (`permalink: /sponsorship`)
 
 Routes are controlled by front matter values like `permalink`.
 

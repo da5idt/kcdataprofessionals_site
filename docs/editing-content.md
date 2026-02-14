@@ -39,6 +39,8 @@ Use this page for content and structure changes in the site source files.
 3. Add page content below front matter.
 4. Add a link in `_data/navigation.yml` if the page should appear in the masthead.
 
+Existing standalone pages in `_pages/` include `_pages/imprint.md` and `_pages/sponsorship.md`.
+
 ## Edit navigation
 
 Update `_data/navigation.yml` (`main:` list). For homepage sections, use anchors like `/#purpose`; for standalone pages, use their permalink paths.
