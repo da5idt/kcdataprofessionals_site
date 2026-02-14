@@ -145,7 +145,7 @@ jobs:
             const fs = require('fs');
             
             const awInfo = {
-              engine_id: "claude",
+              engine_id: "codex",
               engine_name: "Codex",
               model: process.env.GH_AW_MODEL_AGENT_CLAUDE || "",
               version: "",
