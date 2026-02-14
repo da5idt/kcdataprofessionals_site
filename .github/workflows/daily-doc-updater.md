@@ -13,7 +13,7 @@ permissions:
   pull-requests: read
 
 tracker-id: daily-doc-updater
-engine: openai
+engine: codex
 strict: true
 
 network:
