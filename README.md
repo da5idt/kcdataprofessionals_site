@@ -37,6 +37,8 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 
 - Homepage sections/content: `_pages/index.html`
 - Add or edit pages: `_pages/*.md` or `_pages/*.html`
+- Sponsorship page content: `_pages/sponsorship.md`
+- Sponsorship logos/assets: `assets/images/`
 - Navigation links in masthead: `_data/navigation.yml`
 - Header (masthead) markup/behavior: `_includes/masthead.html`
 - Footer markup: `_includes/footer.html`
