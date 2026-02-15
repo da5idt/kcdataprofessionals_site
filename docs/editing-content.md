@@ -7,6 +7,7 @@
 - [Overview](#overview)
 - [Add a new section to the homepage](#add-a-new-section-to-the-homepage)
 - [Add a new page](#add-a-new-page)
+- [Update the sponsorship page](#update-the-sponsorship-page)
 - [Edit navigation](#edit-navigation)
 - [Modify header (masthead)](#modify-header-masthead)
 - [Modify footer](#modify-footer)
@@ -38,6 +39,13 @@ Use this page for content and structure changes in the site source files.
    ```
 3. Add page content below front matter.
 4. Add a link in `_data/navigation.yml` if the page should appear in the masthead.
+
+## Update the sponsorship page
+
+1. Edit content in `_pages/sponsorship.md` (copy, headings, sponsor cards).
+2. Add or update sponsor logos in `assets/images/`, then reference them with `<img src="/assets/images/...">`.
+3. If you need the link in the top navigation, add or update the entry in `_data/navigation.yml`.
+4. Adjust sponsor layout styles in `assets/css/custom-styles.css` (`.sponsor-grid`, `.sponsor-card`, `.sponsorship-page`).
 
 ## Edit navigation
 
@@ -75,6 +83,8 @@ These links are rendered by `_includes/footer.html`.
 - Site-specific overrides: `assets/css/custom-styles.css`
 
 Prefer `assets/css/custom-styles.css` for local customization changes.
+
+Primary button and social hover colors are controlled by CSS variables in `assets/css/custom-styles.css`, including `--kcdp-primary` and `--kcdp-primary-hover`.
 
 ## Safe editing checklist
 
