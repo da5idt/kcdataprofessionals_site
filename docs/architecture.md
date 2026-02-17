@@ -9,6 +9,7 @@
 - [Directory map](#directory-map)
 - [How rendering is wired](#how-rendering-is-wired)
 - [Key file roles requested](#key-file-roles-requested)
+- [Automation workflows](#automation-workflows)
 - [Notes for contributors](#notes-for-contributors)
 
 ## Overview
@@ -81,6 +82,15 @@ Routes are controlled by front matter values like `permalink`.
 - `_includes/footer.html` (footer branding and social icons)
 - `_includes/head.html` + `_includes/head/custom.html` (head assets/meta)
 - `_includes/page__hero.html` (hero block driven by page front matter)
+
+## Automation workflows
+
+The repository includes automated maintenance workflows in `.github/workflows/`:
+
+- `daily-doc-updater.md` reviews recent changes and updates documentation.
+- `daily-repo-status.md` generates a daily repository status report.
+
+Do not edit the corresponding `.lock.yml` files directly. Update the `.md` sources and regenerate the locked workflow if needed.
 
 ## Notes for contributors
 

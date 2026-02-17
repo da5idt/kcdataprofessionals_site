@@ -15,7 +15,7 @@ classes:
     </a>
     <h3>KC Digital Drive</h3>
     <p><strong>Sponsorship type:</strong> Community Partner</p>
-    <p>KC Digital Drive is a 501c3 non-profit organization whose mission is to make Kansas City a digital leader and to improve the quality of life for all people in the region.</p>
+    <p>KC Digital Drive is a regional nonprofit founded in 2012 to improve quality of life across the Kansas City region through digital leadership. By brokering ideas and solutions through trusted relationships, KC Digital Drive strengthens the region’s tech innovation and digital inclusion ecosystems to expand opportunity and drive economic growth.</p>
   </div>
 </div>
 
