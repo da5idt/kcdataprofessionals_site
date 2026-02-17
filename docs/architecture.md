@@ -9,6 +9,7 @@
 - [Directory map](#directory-map)
 - [How rendering is wired](#how-rendering-is-wired)
 - [Key file roles requested](#key-file-roles-requested)
+- [Automation workflows](#automation-workflows)
 - [Notes for contributors](#notes-for-contributors)
 
 ## Overview
@@ -24,7 +25,7 @@ This is a Jekyll site that renders pages from source files and templates into `_
 ## Directory map
 
 - `_config.yml`: global site configuration (site identity, URL, logo, background, footer links, plugins, defaults)
-- `_pages/`: page source files with front matter and content (for this repo, includes `index.html` and `imprint.md`)
+- `_pages/`: page source files with front matter and content (for this repo, includes `index.html`, `imprint.md`, and `sponsorship.md`)
 - `_layouts/`: page templates (`default.html` and `page.html`)
 - `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`)
 - `_data/navigation.yml`: main navigation items rendered in the masthead
@@ -62,6 +63,7 @@ Important: changes to `_config.yml` usually require restarting `jekyll serve` be
 `_pages/` contains routable content files. In this repo:
 - `_pages/index.html` is the homepage (`permalink: /`) and contains section markup (`id="purpose"`, `id="mission"`, etc.)
 - `_pages/imprint.md` is a standalone page
+- `_pages/sponsorship.md` is the sponsorship page (`permalink: /sponsorship`)
 
 Routes are controlled by front matter values like `permalink`.
 
@@ -78,6 +80,15 @@ Routes are controlled by front matter values like `permalink`.
 - `_includes/footer.html` (footer branding and social icons)
 - `_includes/head.html` + `_includes/head/custom.html` (head assets/meta)
 - `_includes/page__hero.html` (hero block driven by page front matter)
+
+## Automation workflows
+
+The repository includes automated maintenance workflows in `.github/workflows/`:
+
+- `daily-doc-updater.md` reviews recent changes and updates documentation.
+- `daily-repo-status.md` generates a daily repository status report.
+
+Do not edit the corresponding `.lock.yml` files directly. Update the `.md` sources and regenerate the locked workflow if needed.
 
 ## Notes for contributors
 
