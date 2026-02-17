@@ -137,7 +137,7 @@ a:hover,
 }
 
 .supported-by-logo {
-  max-height: 3rem; /* 75% of masthead logo max-height (4rem) */
+  max-height: 6rem; /* 75% of masthead logo max-height (4rem) */
   width: auto;
   height: auto;
   display: block;
@@ -180,13 +180,13 @@ a:hover,
 }
 
 .sponsor-card__logo {
-  max-height: 72px;
+  max-height: 150px;
   width: auto;
   height: auto;
   display: block;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0rem;
 }
 
 .sponsorship-page .page__content {
