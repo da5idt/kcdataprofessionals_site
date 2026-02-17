@@ -28,9 +28,11 @@ This is a Jekyll site that renders pages from source files and templates into `_
 - `_pages/`: page source files with front matter and content (for this repo, includes `index.html`, `imprint.md`, and `sponsorship.md`)
 - `_layouts/`: page templates (`default.html` and `page.html`)
 - `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`)
+- `_includes/footer/custom.html`: site-specific footer scripts (for example, link handling behavior)
 - `_data/navigation.yml`: main navigation items rendered in the masthead
 - `assets/css/main.scss`: theme and skin imports
 - `assets/css/custom-styles.css`: custom visual overrides for this site
+- `.github/workflows/`: automation workflows (including `agentics-maintenance.yml`, `daily-doc-updater.md`, `daily-doc-updater.lock.yml`, `daily-repo-status.md`, and `daily-repo-status.lock.yml`)
 
 ## How rendering is wired
 
