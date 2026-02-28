@@ -12,6 +12,7 @@
 - [Modify header (masthead)](#modify-header-masthead)
 - [Modify footer](#modify-footer)
 - [Update social links](#update-social-links)
+- [Update community and event links](#update-community-and-event-links)
 - [Styling changes](#styling-changes)
 - [Safe editing checklist](#safe-editing-checklist)
 
@@ -76,6 +77,13 @@ footer:
 ```
 
 These links are rendered by `_includes/footer.html`.
+
+## Update community and event links
+
+1. Edit `_pages/index.html`.
+2. In the `Join the Community` section, update the LinkedIn and Meetup URLs, labels, or ordering.
+3. In the `Events & Registration` section, update the Luma RSVP link and Meetup event/calendar links.
+4. If you add or change icons, use Font Awesome classes (`fa-brands fa-linkedin`, `fa-brands fa-meetup`) to match existing buttons.
 
 ## Styling changes
 
