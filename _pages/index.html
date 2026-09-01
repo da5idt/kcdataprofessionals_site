@@ -125,18 +125,23 @@ excerpt: "**Connecting Kansas City's data community.**"
     <div class="box-container">
         <div class="box box--primary box-half">
             <h4>Next Event</h4>
-            <p><strong>User-Centered API Product Design: Designing and Developing APIs for Real Users</strong><br>
-            Presented by Ryan Day<br>
-            Thursday, August 27 · 5:30–7:00 PM CT<br>
-            KC Digital Drive, Kansas City, MO</p>
-            <a href="https://luma.com/z3mkfooe" rel="noopener noreferrer nofollow" target="_blank" class="btn btn--primary btn--small">
+            {%- assign event = site.data.next_event %}
+            <p><strong>{{ event.title }}</strong><br>
+            {% if event.speaker != "" %}Presented by {{ event.speaker }}<br>
+            {% endif %}{{ event.date }} · {{ event.time }}<br>
+            {{ event.venue }}</p>
+            {% if event.luma_url != "" %}
+            <a href="{{ event.luma_url }}" rel="noopener noreferrer nofollow" target="_blank" class="btn btn--primary btn--small">
                 <i class="fa-solid fa-star" aria-hidden="true"></i>
                 Register on Luma
             </a>
-            <a href="https://www.meetup.com/kcdataprofessionals/events/316118905/" rel="noopener noreferrer nofollow" target="_blank" class="btn btn--primary btn--small">
+            {% endif %}
+            {%- if event.meetup_url != "" %}
+            <a href="{{ event.meetup_url }}" rel="noopener noreferrer nofollow" target="_blank" class="btn btn--primary btn--small">
                 <i class="fa-brands fa-meetup" aria-hidden="true"></i>
                 Register on Meetup
             </a>
+            {%- endif %}
         </div>
         <div class="box box--primary box-half">
             <h4>All Events</h4>
