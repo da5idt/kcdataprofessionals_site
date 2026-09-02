@@ -48,6 +48,10 @@ USER_AGENT = (
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 
+# Zero-width spaces, bidi marks and the byte-order mark: invisible in the
+# rendered page, but they travel with text pasted between apps.
+INVISIBLE_RE = re.compile(r"[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
+
 # "Ryan Day is the author of ..." — how speaker bios are written on the event
 # pages. Neither site exposes the speaker as structured data, so this is a
 # best-effort guess that is always printed for review and can be overridden.
@@ -199,9 +203,16 @@ def detect_speaker(*descriptions: str) -> str:
     return ""
 
 
-def clean_title(title: str) -> str:
-    """Collapse whitespace; leave the organizer's own capitalisation alone."""
-    return re.sub(r"\s+", " ", title).strip()
+def clean_text(value: str) -> str:
+    """Tidy a value copied off an event page for display on the site.
+
+    Organizers paste titles in from elsewhere, so they arrive carrying
+    zero-width and bidi characters that are invisible here but would show up
+    as stray marks in the page source. Python's \\s does not match them, so
+    they are removed by name. Capitalisation is left alone.
+    """
+    value = INVISIBLE_RE.sub("", value).replace("\u00a0", " ")
+    return re.sub(r"\s+", " ", value).strip()
 
 
 # --------------------------------------------------------------------------- #
@@ -269,7 +280,7 @@ def gather(args: argparse.Namespace) -> dict:
     # after the month ("Kansas City Data Professionals (August 2026)") and puts
     # the talk title on the first line of the description.
     luma_first_line = (luma_event.get("description") or "").strip().split("\n")[0]
-    title = args.title or clean_title(
+    title = args.title or clean_text(
         meetup_event.get("name") or luma_first_line or ""
     )
     if not title:
@@ -291,15 +302,18 @@ def gather(args: argparse.Namespace) -> dict:
         )
 
     venue = args.venue or format_venue(meetup_event) or format_venue(luma_event)
+    venue = clean_text(venue)
     if not venue:
         raise EventError("could not determine the venue; pass --venue")
 
     speaker = args.speaker
     speaker_detected = False
     if speaker is None:
-        speaker = detect_speaker(
-            luma_event.get("description") or "",
-            meetup_event.get("description") or "",
+        speaker = clean_text(
+            detect_speaker(
+                luma_event.get("description") or "",
+                meetup_event.get("description") or "",
+            )
         )
         speaker_detected = bool(speaker)
 

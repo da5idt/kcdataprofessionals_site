@@ -92,6 +92,25 @@ class DetectSpeaker(unittest.TestCase):
         self.assertEqual(u.detect_speaker("Come learn about APIs with us."), "")
 
 
+class CleanText(unittest.TestCase):
+    def test_strips_the_zero_width_space_meetup_titles_arrive_with(self):
+        self.assertEqual(u.clean_text("\u200bGoverned at the Speed of AI"),
+                         "Governed at the Speed of AI")
+
+    def test_strips_bidi_marks_and_byte_order_marks(self):
+        self.assertEqual(u.clean_text("\ufeffA\u200e B\u2060"), "A B")
+
+    def test_non_breaking_space_becomes_an_ordinary_space(self):
+        self.assertEqual(u.clean_text("Data\u00a0Science"), "Data Science")
+
+    def test_collapses_runs_of_whitespace_and_trims(self):
+        self.assertEqual(u.clean_text("  Two   Words \n"), "Two Words")
+
+    def test_leaves_ordinary_punctuation_and_capitalisation_alone(self):
+        title = "User-Centered API Product Design: APIs for real users"
+        self.assertEqual(u.clean_text(title), title)
+
+
 class HeroButton(unittest.TestCase):
     front_matter = (
         '        - label: "Join on Meetup"\n'

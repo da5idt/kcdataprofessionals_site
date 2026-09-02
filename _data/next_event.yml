@@ -5,11 +5,11 @@
 #
 #   python3 scripts/update_next_event.py --luma <url> --meetup <url>
 
-title: "User-Centered API Product Design: Designing and Developing APIs for real users"
-speaker: "Ryan Day"
-date: "Thursday, August 27"
+title: "Governed at the Speed of AI"
+speaker: "Matt Crouch"
+date: "Thursday, September 24"
 time: "5:30–7:00 PM CT"
 venue: "KC Digital Drive, Kansas City, MO"
-luma_url: "https://luma.com/z3mkfooe"
-meetup_url: "https://www.meetup.com/kcdataprofessionals/events/316118905/"
-starts_at: "2026-08-27T17:30:00-05:00"
+luma_url: "https://luma.com/we7gmkov"
+meetup_url: "https://www.meetup.com/kcdataprofessionals/events/316380383"
+starts_at: "2026-09-24T17:30:00-05:00"
