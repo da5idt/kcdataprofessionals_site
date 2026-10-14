@@ -20,6 +20,15 @@ logo                     : "/assets/images/kcdp_logos_banner.png" # Site logo sh
 
 
 
+# Forms (sponsorship and speaker pages).
+# Paste the Google Apps Script web app URL here after following
+# docs/forms.md. While it is empty the forms show but cannot be sent.
+forms:
+  endpoint: ""
+  fallback_url: "https://www.linkedin.com/company/kcdataprofessionals" # shown if the form is unavailable
+
+
+
 # Site Footer.
 footer:
   links: # replace the URL's with your own for every link you want to have in your footer.
@@ -38,6 +47,7 @@ include:
   - .htaccess
   - _pages
 exclude:
+  - apps-script
   - "*.sublime-project"
   - "*.sublime-workspace"
   - vendor

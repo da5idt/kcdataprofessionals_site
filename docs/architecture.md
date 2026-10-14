@@ -29,7 +29,10 @@ This is a Jekyll site that renders pages from source files and templates into `_
 - `_layouts/`: page templates (`default.html` and `page.html`)
 - `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`, `icon.html`)
 - `_includes/footer/custom.html`: site-specific footer scripts (for example, link handling behavior)
+- `_includes/form-open.html` / `_includes/form-close.html`: shared wrapper for the forms (endpoint, spam honeypot, status message)
 - `_data/navigation.yml`: main navigation items rendered in the masthead
+- `_data/partners.yml`: partner communities listed on the home page
+- `apps-script/`: the Google Apps Script that receives the sponsorship and speaker forms, stores them in a Google Sheet and sends the emails (see [forms.md](forms.md)); excluded from the Jekyll build
 - `assets/css/main.scss`: the site's entire stylesheet (design tokens, layout, components), compiled to `/assets/css/main.css`
 - `assets/fonts/`: self-hosted IBM Plex Sans and IBM Plex Mono (SIL Open Font License)
 - `.github/workflows/`: automation workflows (including `agentics-maintenance.yml`, `daily-doc-updater.md`, `daily-doc-updater.lock.yml`, `daily-repo-status.md`, and `daily-repo-status.lock.yml`)
@@ -64,7 +67,8 @@ Important: changes to `_config.yml` usually require restarting `jekyll serve` be
 `_pages/` contains routable content files. In this repo:
 - `_pages/index.html` is the homepage (`permalink: /`) and contains section markup (`id="about"`, `id="mission"`, `id="join"`, `id="supported-by"`); the hero and next-event card (`id="events"`) come from `_includes/page__hero.html`
 - `_pages/imprint.md` is a standalone page
-- `_pages/sponsorship.md` is the sponsorship page (`permalink: /sponsorship`)
+- `_pages/sponsorship.md` is the sponsorship page and form (`permalink: /sponsorship`)
+- `_pages/speak.html` is the speaker page and form (`permalink: /speak`)
 
 Routes are controlled by front matter values like `permalink`.
 

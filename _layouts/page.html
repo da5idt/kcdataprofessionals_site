@@ -11,6 +11,7 @@ layout: default
       {% if page.eyebrow %}<p class="eyebrow">{{ page.eyebrow }}</p>{% endif %}
       <h1>{{ page.title }}</h1>
       {% if page.lead %}<p class="page-header__lead">{{ page.lead }}</p>{% endif %}
+      {% if page.cta_url %}<p class="page-header__cta"><a class="btn btn--light" href="{{ page.cta_url }}">{{ page.cta_label }}</a></p>{% endif %}
     </div>
   </header>
   <article class="page-body container">

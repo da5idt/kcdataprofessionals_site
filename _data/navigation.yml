@@ -7,6 +7,8 @@ main:
     url: /#mission
   - title: "Join"
     url: /#join
+  - title: "Speak"
+    url: /speak
   - title: "Sponsorship"
     url: /sponsorship
   - title: "Next event"

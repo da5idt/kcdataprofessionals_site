@@ -38,6 +38,9 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - Homepage sections/content: `_pages/index.html`
 - Add or edit pages: `_pages/*.md` or `_pages/*.html`
 - Sponsorship page content: `_pages/sponsorship.md`
+- Speaker page content: `_pages/speak.html`
+- Partner communities on the home page: `_data/partners.yml`
+- Sponsorship and speaker forms (Google Sheet + email workflow): [docs/forms.md](docs/forms.md), code in `apps-script/`
 - Sponsorship logos/assets: `assets/images/`
 - Navigation links in masthead: `_data/navigation.yml`
 - Header (masthead) markup/behavior: `_includes/masthead.html`
@@ -56,3 +59,4 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - [Contribution Workflow](docs/contribution-workflow.md)
 - [Architecture](docs/architecture.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Sponsorship and speaker forms](docs/forms.md)

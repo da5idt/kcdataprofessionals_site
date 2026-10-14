@@ -36,3 +36,4 @@ This subpage covers the Git workflow for this repo: create a branch from `main`,
 
 - [Architecture reference](architecture.md)
 - [Troubleshooting](troubleshooting.md)
+- [Sponsorship and speaker forms](forms.md)

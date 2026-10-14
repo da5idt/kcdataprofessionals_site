@@ -1,0 +1,9 @@
+  <p class="form__privacy">
+    We store your answers in a private KCDP spreadsheet and use them only to follow up on this request.
+    You'll get a copy by email, sent from the KCDP organizers.
+  </p>
+  <div class="form__footer">
+    <button class="btn btn--solid" type="submit"{% if site.forms.endpoint == "" %} disabled{% endif %}>{{ include.submit | default: "Send" }}</button>
+    <p class="form__status" role="status" aria-live="polite" data-form-status></p>
+  </div>
+</form>

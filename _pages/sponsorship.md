@@ -3,6 +3,8 @@ layout: page
 title: Support Kansas City Data Professionals
 eyebrow: Sponsorship
 lead: "KCDP is a practitioner-led, vendor-neutral community focused on real-world data leadership, engineering, analytics, and platform design. Sponsorship enables the community. It does not influence content."
+cta_url: "#sponsorship-form"
+cta_label: "Request sponsorship levels"
 permalink: /sponsorship
 classes:
   - sponsorship-page
@@ -60,7 +62,48 @@ We believe long-term trust is more valuable than short-term funding.
   </div>
 </div>
 
-<div class="callout">
-  <p>If your organization values practitioner-first learning and authentic technical conversations, we welcome a conversation.</p>
-  <a class="btn btn--solid" href="https://www.linkedin.com/company/kcdataprofessionals" target="_blank" rel="noopener noreferrer">Message KCDP on LinkedIn</a>
-</div>
+{% include form-open.html name="sponsorship" title="Start a sponsorship conversation" %}
+  <p class="form__intro">Tell us a little about your organization. We'll email you our sponsorship levels right away, with the KCDP organizers copied so we can follow up quickly.</p>
+  <fieldset class="form__group">
+    <legend>Contact</legend>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Name <span class="field__req">required</span></span>
+        <input type="text" name="name" autocomplete="name" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="field__label">Work email <span class="field__req">required</span></span>
+        <input type="email" name="email" autocomplete="email" required maxlength="200">
+      </label>
+    </div>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Organization <span class="field__req">required</span></span>
+        <input type="text" name="organization" autocomplete="organization" required maxlength="200">
+      </label>
+      <label class="field">
+        <span class="field__label">Your role</span>
+        <input type="text" name="role" autocomplete="organization-title" maxlength="200">
+      </label>
+    </div>
+    <label class="field">
+      <span class="field__label">Website</span>
+      <input type="url" name="website" autocomplete="url" maxlength="300" placeholder="https://">
+    </label>
+  </fieldset>
+
+  <fieldset class="form__group">
+    <legend>Interested in</legend>
+    <div class="choices">
+      <label class="choice"><input type="checkbox" name="interest" value="Venue host"> Hosting an event</label>
+      <label class="choice"><input type="checkbox" name="interest" value="Event sponsor"> Sponsoring food or logistics</label>
+      <label class="choice"><input type="checkbox" name="interest" value="Community partner"> Community partnership</label>
+      <label class="choice"><input type="checkbox" name="interest" value="Not sure yet"> Not sure yet</label>
+    </div>
+    <label class="field">
+      <span class="field__label">Anything we should know?</span>
+      <span class="field__hint">Timing, budget, audiences you want to support, or questions for us.</span>
+      <textarea name="message" rows="4" maxlength="4000"></textarea>
+    </label>
+  </fieldset>
+{% include form-close.html submit="Email me the sponsorship levels" %}

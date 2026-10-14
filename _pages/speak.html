@@ -1,0 +1,107 @@
+---
+layout: page
+title: Speak at Kansas City Data Professionals
+eyebrow: Speakers
+lead: "Our meetups run on practitioners sharing what they've built, broken, and learned. If you have a story from the data trenches, we'd love to hear it. First-time speakers are welcome."
+cta_url: "#speaker-form"
+cta_label: "Propose a talk"
+permalink: /speak
+classes:
+  - speak-page
+---
+
+<h2>What makes a great KCDP talk</h2>
+
+<ul class="principles">
+  <li>Grounded in real work: projects, migrations, incidents, and lessons learned.</li>
+  <li>Useful across disciplines, from engineering to analytics to leadership.</li>
+  <li>Tool-agnostic thinking, even when you demo a specific tool.</li>
+  <li>Education over marketing. No sales pitches from the stage.</li>
+</ul>
+
+<p>
+  Not sure your idea is ready? Send it anyway. We're happy to help shape a rough idea into a talk,
+  pair you with a co-presenter, or suggest a shorter lightning-talk format.
+</p>
+
+<h2>How it works</h2>
+
+<ol class="steps">
+  <li><strong>Tell us about your idea.</strong> A title and a few sentences are enough to start.</li>
+  <li><strong>We follow up by email.</strong> You and the organizers get a copy of your submission so the conversation starts right away.</li>
+  <li><strong>We pick a date together.</strong> We match talks to upcoming meetups and help with anything you need before the event.</li>
+</ol>
+
+{% include form-open.html name="speaker" title="Propose a talk" %}
+  <fieldset class="form__group">
+    <legend>About you</legend>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Name <span class="field__req">required</span></span>
+        <input type="text" name="name" autocomplete="name" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="field__label">Email <span class="field__req">required</span></span>
+        <input type="email" name="email" autocomplete="email" required maxlength="200">
+      </label>
+    </div>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Role and organization</span>
+        <input type="text" name="role" autocomplete="organization-title" maxlength="200" placeholder="Analytics engineer at Acme">
+      </label>
+      <label class="field">
+        <span class="field__label">LinkedIn or website</span>
+        <input type="url" name="profile_url" autocomplete="url" maxlength="300" placeholder="https://">
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="form__group">
+    <legend>Your talk</legend>
+    <label class="field">
+      <span class="field__label">Working title <span class="field__req">required</span></span>
+      <input type="text" name="talk_title" required maxlength="200">
+    </label>
+    <label class="field">
+      <span class="field__label">What's it about? <span class="field__req">required</span></span>
+      <span class="field__hint">A short abstract: the problem, what you did, and what people will take away.</span>
+      <textarea name="abstract" rows="6" required maxlength="4000"></textarea>
+    </label>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Format</span>
+        <select name="format">
+          <option value="">Open to suggestions</option>
+          <option>Full talk</option>
+          <option>Lightning talk</option>
+          <option>Panel discussion</option>
+          <option>Hands-on workshop</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field__label">Audience level</span>
+        <select name="level">
+          <option value="">Any level</option>
+          <option>Introductory</option>
+          <option>Intermediate</option>
+          <option>Advanced</option>
+        </select>
+      </label>
+    </div>
+    <label class="field">
+      <span class="field__label">When could you present?</span>
+      <span class="field__hint">Months or dates that work, or any that don't.</span>
+      <input type="text" name="availability" maxlength="300">
+    </label>
+    <label class="field">
+      <span class="field__label">Speaking experience</span>
+      <span class="field__hint">Optional. Links to past talks or slides, or tell us this would be your first.</span>
+      <textarea name="experience" rows="3" maxlength="2000"></textarea>
+    </label>
+    <label class="field">
+      <span class="field__label">Anything else?</span>
+      <textarea name="notes" rows="3" maxlength="2000"></textarea>
+    </label>
+  </fieldset>
+{% include form-close.html submit="Send proposal" %}
