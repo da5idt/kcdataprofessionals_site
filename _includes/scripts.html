@@ -1,10 +1,47 @@
-{% if site.footer_scripts %}
-  {% for script in site.footer_scripts %}
-    <script src="{{ script | relative_url }}"></script>
-  {% endfor %}
-{% else %}
-  <script src="{{ '/assets/js/main.min.js' | relative_url }}"></script>
-{% endif %}
+<script>
+  (function () {
+    // Mobile menu toggle.
+    var toggle = document.querySelector(".masthead__toggle");
+    var nav = document.getElementById("site-nav");
+    if (toggle && nav) {
+      var setOpen = function (open) {
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        nav.classList.toggle("is-open", open);
+      };
+      toggle.addEventListener("click", function () {
+        setOpen(toggle.getAttribute("aria-expanded") !== "true");
+      });
+      nav.addEventListener("click", function (event) {
+        if (event.target.closest("a")) setOpen(false);
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") setOpen(false);
+      });
+    }
+
+    // "In 15 days" on the next-event card, or a notice once it has passed.
+    var card = document.querySelector(".event-card[data-starts-at]");
+    var label = card && card.querySelector("[data-countdown]");
+    var startsAt = card && new Date(card.getAttribute("data-starts-at"));
+    if (label && startsAt && !isNaN(startsAt)) {
+      var startOfDay = function (d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+      var days = Math.round((startOfDay(startsAt) - startOfDay(new Date())) / 86400000);
+      var text;
+      if (days > 1) text = "In " + days + " days";
+      else if (days === 1) text = "Tomorrow";
+      else if (days === 0) text = "Today";
+      if (text) {
+        label.textContent = text;
+        label.hidden = false;
+      } else {
+        card.classList.add("is-past");
+        card.querySelector("[data-kicker]").textContent = "Most recent event";
+        label.textContent = "Next date coming soon";
+        label.hidden = false;
+      }
+    }
+  })();
+</script>
 
 {% if site.after_footer_scripts %}
   {% for script in site.after_footer_scripts %}

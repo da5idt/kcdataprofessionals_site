@@ -24,14 +24,14 @@ This is a Jekyll site that renders pages from source files and templates into `_
 
 ## Directory map
 
-- `_config.yml`: global site configuration (site identity, URL, logo, background, footer links, plugins, defaults)
+- `_config.yml`: global site configuration (site identity, URL, logo, footer links, plugins, defaults)
 - `_pages/`: page source files with front matter and content (for this repo, includes `index.html`, `imprint.md`, and `sponsorship.md`)
 - `_layouts/`: page templates (`default.html` and `page.html`)
-- `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`)
+- `_includes/`: reusable components included by layouts (for example `masthead.html`, `footer.html`, `head.html`, `page__hero.html`, `icon.html`)
 - `_includes/footer/custom.html`: site-specific footer scripts (for example, link handling behavior)
 - `_data/navigation.yml`: main navigation items rendered in the masthead
-- `assets/css/main.scss`: theme and skin imports
-- `assets/css/custom-styles.css`: custom visual overrides for this site
+- `assets/css/main.scss`: the site's entire stylesheet (design tokens, layout, components), compiled to `/assets/css/main.css`
+- `assets/fonts/`: self-hosted IBM Plex Sans and IBM Plex Mono (SIL Open Font License)
 - `.github/workflows/`: automation workflows (including `agentics-maintenance.yml`, `daily-doc-updater.md`, `daily-doc-updater.lock.yml`, `daily-repo-status.md`, and `daily-repo-status.lock.yml`)
 
 ## How rendering is wired
@@ -41,7 +41,7 @@ This is a Jekyll site that renders pages from source files and templates into `_
    - `_includes/masthead.html`
    - page content (`{{ content }}`)
    - `_includes/footer/custom.html` and `_includes/footer.html`
-2. `_layouts/page.html` uses `layout: default` and optionally injects `_includes/page__hero.html` when page header front matter exists.
+2. `_layouts/page.html` uses `layout: default`. Pages with `header.overlay_image` (the homepage) get `_includes/page__hero.html`; other pages get a navy page header built from `title`, plus optional `eyebrow` and `lead` front matter.
 3. `_pages/index.html` uses `layout: page` and provides the homepage sections.
 4. `_includes/masthead.html` reads links from `_data/navigation.yml`.
 5. `_includes/footer.html` reads social/footer links from `_config.yml` at `footer.links`.
@@ -52,8 +52,7 @@ This is a Jekyll site that renders pages from source files and templates into `_
 
 `_config.yml` is the source of site-wide settings, including:
 - title/tagline/url/repository metadata
-- masthead options (`logo`, `masthead_title`, `sticky-masthead`, opacity)
-- background image settings
+- `logo`, shown in the header and footer
 - footer link definitions (`footer.links`)
 - plugin and build settings
 - defaults for files in `_pages/`
@@ -63,7 +62,7 @@ Important: changes to `_config.yml` usually require restarting `jekyll serve` be
 ### `_pages`
 
 `_pages/` contains routable content files. In this repo:
-- `_pages/index.html` is the homepage (`permalink: /`) and contains section markup (`id="purpose"`, `id="mission"`, etc.)
+- `_pages/index.html` is the homepage (`permalink: /`) and contains section markup (`id="about"`, `id="mission"`, `id="join"`, `id="supported-by"`); the hero and next-event card (`id="events"`) come from `_includes/page__hero.html`
 - `_pages/imprint.md` is a standalone page
 - `_pages/sponsorship.md` is the sponsorship page (`permalink: /sponsorship`)
 
@@ -81,7 +80,9 @@ Routes are controlled by front matter values like `permalink`.
 - `_includes/masthead.html` (top navigation/header)
 - `_includes/footer.html` (footer branding and social icons)
 - `_includes/head.html` + `_includes/head/custom.html` (head assets/meta)
-- `_includes/page__hero.html` (hero block driven by page front matter)
+- `_includes/page__hero.html` (homepage hero and next-event card, driven by page front matter and `_data/next_event.yml`)
+- `_includes/icon.html` (inline SVG icons: `linkedin`, `meetup`, `arrow`, `external`, `calendar`, `menu`)
+- `_includes/scripts.html` (mobile menu toggle and the next-event countdown)
 
 ## Automation workflows
 
