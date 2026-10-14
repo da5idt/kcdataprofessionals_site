@@ -4,3 +4,6 @@ _site
 Gemfile.lock
 .sass-cache
 __pycache__/
+vendor/
+.bundle/
+_config.local.yml

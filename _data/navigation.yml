@@ -1,20 +1,16 @@
-# main links
+# Links in the site header. Set `button: true` to show a link as the
+# header's call-to-action button (use it for one link at most).
 main:
-  - title: "Purpose"
-    url: /#purpose
-    blank: false
-  - title: "Mission"
+  - title: "About"
+    url: /#about
+  - title: "What we do"
     url: /#mission
-    blank: false
-  - title: "Objectives"
-    url: /#objectives
-    blank: false
   - title: "Join"
     url: /#join
-    blank: false
-  - title: "Events"
-    url: /#events
-    blank: false
+  - title: "Speak"
+    url: /speak
   - title: "Sponsorship"
     url: /sponsorship
-    blank: false
+  - title: "Next event"
+    url: /#events
+    button: true

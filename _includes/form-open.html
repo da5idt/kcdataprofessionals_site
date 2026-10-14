@@ -1,0 +1,17 @@
+{%- comment -%}
+  Opens a form that posts to the Google Apps Script endpoint in _config.yml
+  (forms.endpoint). Close it with {% include form-close.html %}.
+  Usage: {% include form-open.html name="speaker" title="Propose a talk" %}
+{%- endcomment -%}
+<form class="form" id="{{ include.name }}-form" data-form method="post" action="{{ site.forms.endpoint }}" accept-charset="UTF-8"{% if site.forms.endpoint == "" %} data-unavailable{% endif %} aria-labelledby="{{ include.name }}-form-title">
+  <h2 id="{{ include.name }}-form-title">{{ include.title }}</h2>
+  {% if site.forms.endpoint == "" %}
+  <p class="form__notice">
+    Online submissions aren't switched on yet. In the meantime,
+    <a href="{{ site.forms.fallback_url }}" target="_blank" rel="noopener noreferrer">message KCDP on LinkedIn</a>.
+  </p>
+  {% endif %}
+  <input type="hidden" name="form" value="{{ include.name }}">
+  <div class="form__trap" aria-hidden="true">
+    <label>Leave this field empty <input type="text" name="_company_url" tabindex="-1" autocomplete="off"></label>
+  </div>

@@ -1,46 +1,64 @@
-{% capture overlay_img_path %}{{ page.header.overlay_image | relative_url }}{% endcapture %}
+{%- comment -%}
+  Home page hero: headline and join links on the left, the next event on the
+  right. Event details come from _data/next_event.yml; the Register button's
+  URL is the "Register for Next Event" action in the page front matter, which
+  scripts/update_next_event.py keeps in sync with that file.
+{%- endcomment -%}
+{%- assign event = site.data.next_event -%}
+{%- assign register = page.header.actions | where: "label", "Register for Next Event" | first -%}
 
-{% if page.header.overlay_filter contains "gradient" %}
-  {% capture overlay_filter %}{{ page.header.overlay_filter }}{% endcapture %}
-{% elsif page.header.overlay_filter contains "rgba" %}
-  {% capture overlay_filter %}{{ page.header.overlay_filter }}{% endcapture %}
-  {% capture overlay_filter %}linear-gradient({{ overlay_filter }}, {{ overlay_filter }}){% endcapture %}
-{% elsif page.header.overlay_filter %}
-  {% capture overlay_filter %}rgba(0, 0, 0, {{ page.header.overlay_filter }}){% endcapture %}
-  {% capture overlay_filter %}linear-gradient({{ overlay_filter }}, {{ overlay_filter }}){% endcapture %}
-{% endif %}
-
-{% if page.header.image_description %}
-  {% assign image_description = page.header.image_description %}
-{% else %}
-  {% assign image_description = page.title %}
-{% endif %}
-
-{% assign image_description = image_description | markdownify | strip_html | strip_newlines | escape_once %}
-
-<div class="page__hero{% if page.header.overlay_color or page.header.overlay_image %}--overlay{% endif %}"
-     style="{% if page.header.overlay_color %}background-color: {{ page.header.overlay_color | default: 'transparent' }};{% endif %} {% if overlay_img_path %}background-image: {% if overlay_filter %}{{ overlay_filter }}, {% endif %}url('{{ overlay_img_path }}');{% endif %}; min-height: 100vh; background-size: cover; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-  {% if page.header.overlay_color or page.header.overlay_image %}
-    <div class="wrapper">
-      <h1 id="page-title" class="page__title" itemprop="headline">
-          {{ page.title | default: site.title | markdownify | remove: "<p>" | remove: "</p>" }}
-      </h1>
-      {% if page.header.show_overlay_excerpt != false and page.excerpt %}
-        <p class="page__lead">{{ page.excerpt | markdownify | remove: "<p>" | remove: "</p>" }}</p>
-      {% endif %}
-      {% if page.header.actions %}
-      <div style="text-align: center">
-        <p>
-        {% for action in page.header.actions %}
-          <a href="{{ action.url | relative_url }}" class="btn btn--light-outline btn--large" {% if action.blank %} target="_blank" rel="noopener noreferrer nofollow"{% endif %}>{{ action.label | default: site.data.ui-text[site.locale].more_label | default: "Learn More" }}</a>
-        {% endfor %}
+<section class="hero" style="--hero-image: url('{{ page.header.hero_image | default: page.header.overlay_image | relative_url }}')">
+  <div class="hero__inner container">
+    <div class="hero__intro">
+      {% if page.header.eyebrow %}<p class="eyebrow eyebrow--light">{{ page.header.eyebrow }}</p>{% endif %}
+      <h1 class="hero__title">{{ page.header.headline | default: page.title }}</h1>
+      {% if page.header.lead %}<p class="hero__lead">{{ page.header.lead }}</p>{% endif %}
+      <div class="hero__actions">
+        {%- for action in page.header.actions %}
+        {%- unless action.label == "Register for Next Event" %}
+        <a href="{{ action.url | relative_url }}" class="btn {% if forloop.first %}btn--light{% else %}btn--ghost{% endif %}"{% if action.blank %} target="_blank" rel="noopener noreferrer"{% endif %}>
+          {% if action.icon %}{% include icon.html name=action.icon %}{% endif %}
+          {{ action.label }}
+        </a>
+        {%- endunless %}
+        {%- endfor %}
       </div>
-      {% endif %}
     </div>
-  {% else %}
-    <img src="{{ page.header.image | relative_url }}" alt="{{ image_description }}" class="page__hero-image">
-  {% endif %}
-  {% if page.header.caption %}
-    <span class="page__hero-caption">{{ page.header.caption | markdownify | remove: "<p>" | remove: "</p>" }}</span>
-  {% endif %}
-</div>
+
+    <article class="event-card" id="events" aria-labelledby="event-title" data-starts-at="{{ event.starts_at }}">
+      <header class="event-card__header">
+        <p class="event-card__kicker">
+          <span class="event-card__dot" aria-hidden="true"></span>
+          <span data-kicker>Next event</span>
+        </p>
+        <p class="event-card__countdown" data-countdown hidden></p>
+      </header>
+
+      <h2 class="event-card__title" id="event-title">{{ event.title }}</h2>
+      {% if event.speaker != "" %}<p class="event-card__speaker">Presented by {{ event.speaker }}</p>{% endif %}
+
+      <dl class="event-card__meta">
+        <div><dt>Date</dt><dd>{{ event.date }}</dd></div>
+        <div><dt>Time</dt><dd>{{ event.time }}</dd></div>
+        <div><dt>Where</dt><dd>{{ event.venue }}</dd></div>
+      </dl>
+
+      <div class="event-card__actions">
+        {%- if event.luma_url != "" and register %}
+        <a href="{{ register.url }}" class="btn btn--solid" target="_blank" rel="noopener noreferrer">
+          Register on Luma {% include icon.html name="external" %}
+        </a>
+        {%- endif %}
+        {%- if event.meetup_url != "" %}
+        <a href="{{ event.meetup_url }}" class="btn {% if event.luma_url != '' %}btn--outline{% else %}btn--solid{% endif %}" target="_blank" rel="noopener noreferrer">
+          {% include icon.html name="meetup" %} RSVP on Meetup
+        </a>
+        {%- endif %}
+      </div>
+
+      <a class="event-card__more" href="https://www.meetup.com/kcdataprofessionals/events/calendar/" target="_blank" rel="noopener noreferrer">
+        {% include icon.html name="calendar" %} See all upcoming events
+      </a>
+    </article>
+  </div>
+</section>

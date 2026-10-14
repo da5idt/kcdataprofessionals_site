@@ -6,29 +6,26 @@
 # `jekyll serve`. If you change this file, please restart the server process.
 
 
-oneflow-skin    : "default" # "default", "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
 
 # Site Settings
 locale                   : "en-US"
 title                    : "Kansas City Data Professionals"
 title_separator          : "-"
-subtitle                 : " " # Displayed in the masthead below the title, use " " for no subtitle
 tagline                  : "Connecting Kansas City's data community."
 url                      : "https://kcdataprofessionals.org" # the base hostname & protocol for your site
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "da5idt/kcdataprofessionals_site" # GitHub username/repo-name
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
-logo                     : "/assets/images/kcdp_logos_banner.png" # Site logo displayed in the masthead
-show-popup               : false # set to false if you don't need / want to show a cookie-banner / cdn-usage popup.
-                                # Edit the popup itself in the respective /includes file
-masthead_title           : " "  # Overrides the website title displayed in the masthead, use " " for no title
-sticky-masthead          : true # if true, masthead/navigation bar will stay visible when the user scrolls down.
-                                # if false, it will move out of sight when scrolling.
-masthead-opacity         : 0.85 # set to any value between 0 and 1.
-                                # 0.8-0.9 is a good recommended starting point. Only relevant if masthead is sticky.
-background-image         : # '/assets/images/kcskyline.jpg' # Remove / out-comment, if you don't want a background image
-background-image-mobile  : # '/assets/images/kcskyline.jpg' # If you want a different (e.g upright) background image for mobile
-background-image-overlay : rgba(255, 255, 255, 0.5) # Set overlay for the background image
+logo                     : "/assets/images/kcdp_logos_banner.png" # Site logo shown in the header and footer
+
+
+
+# Forms (sponsorship and speaker pages).
+# Paste the Google Apps Script web app URL here after following
+# docs/forms.md. While it is empty the forms show but cannot be sent.
+forms:
+  endpoint: ""
+  fallback_url: "https://www.linkedin.com/company/kcdataprofessionals" # shown if the form is unavailable
 
 
 
@@ -36,10 +33,10 @@ background-image-overlay : rgba(255, 255, 255, 0.5) # Set overlay for the backgr
 footer:
   links: # replace the URL's with your own for every link you want to have in your footer.
     - label: "LinkedIn"
-      icon: "fab fa-linkedin"
+      icon: "linkedin" # name of an icon in _includes/icon.html
       url: "https://www.linkedin.com/groups/15848016/"
     - label: "Meetup"
-      icon: "fab fa-meetup"
+      icon: "meetup"
       url: "https://www.meetup.com/kcdataprofessionals/"
   copyright: "Kansas City Data Professionals" # Replace with your own
 
@@ -50,6 +47,7 @@ include:
   - .htaccess
   - _pages
 exclude:
+  - apps-script
   - "*.sublime-project"
   - "*.sublime-workspace"
   - vendor
