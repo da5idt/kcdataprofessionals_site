@@ -6,3 +6,4 @@ Gemfile.lock
 __pycache__/
 vendor/
 .bundle/
+_config.local.yml
