@@ -70,7 +70,7 @@
             if (!result.ok) throw { userMessage: result.error };
             form.classList.add("is-sent");
             form.reset();
-            show("Thanks! It's on its way. Check your inbox for a copy; the KCDP organizers are copied and will follow up.", "success");
+            show("Thanks! It's on its way. Check your inbox for a copy. We'll follow up soon.", "success");
           })
           .catch(function (error) {
             button.disabled = false;

@@ -63,7 +63,7 @@ We believe long-term trust is more valuable than short-term funding.
 </div>
 
 {% include form-open.html name="sponsorship" title="Start a sponsorship conversation" %}
-  <p class="form__intro">Tell us a little about your organization. We'll email you our sponsorship levels right away, with the KCDP organizers copied so we can follow up quickly.</p>
+  <p class="form__intro">Tell us a little about your organization. We'll email you our sponsorship levels right away and follow up to talk through the details.</p>
   <fieldset class="form__group">
     <legend>Contact</legend>
     <div class="form__row">

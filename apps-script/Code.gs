@@ -3,13 +3,25 @@
  *
  * Receives the sponsorship and speaker forms from kcdataprofessionals.org,
  * saves each submission as a row in this spreadsheet, and emails the person
- * who submitted it with the organizers copied. Sponsorship emails attach the
- * sponsorship levels document from Google Drive.
+ * who submitted it with organizers copied.
+ *
+ * Sponsorship runs in two stages:
+ *   1. Inquiry: the sponsor gets the sponsorship levels PDF, with the KCDP
+ *      organizers (KCDP_EMAILS) copied.
+ *   2. Approval: an organizer selects the sponsor's row and chooses
+ *      KCDP > Approve selected sponsor. That sends a welcome email copying
+ *      the KCDP organizers and KC Digital Drive (KCDD_EMAILS), and marks the
+ *      row Approved.
+ * Speaker proposals copy the KCDP organizers only.
  *
  * Setup and deployment: docs/forms.md in the website repository.
  *
  * Script properties (Project Settings > Script properties):
- *   TEAM_EMAILS     required  Comma-separated organizer addresses to CC.
+ *   KCDP_EMAILS     required  Comma-separated KCDP organizer addresses.
+ *                             Copied on every submission and approval; the
+ *                             first one is the Reply-To address.
+ *   KCDD_EMAILS     optional  Comma-separated KC Digital Drive addresses.
+ *                             Copied only on sponsor approval emails.
  *   SPONSOR_DOC_ID  optional  Drive file ID of the sponsorship levels
  *                             document (a Google Doc or a PDF). Attached
  *                             to sponsorship emails as a PDF.
@@ -155,17 +167,23 @@ function validate_(form, values) {
 
 function config_() {
   var props = PropertiesService.getScriptProperties();
-  var team = String(props.getProperty("TEAM_EMAILS") || "")
-    .split(",")
-    .map(function (address) { return address.trim(); })
-    .filter(Boolean);
-  if (!team.length) throw new Error("Script property TEAM_EMAILS is not set.");
+  var kcdp = addresses_(props.getProperty("KCDP_EMAILS"));
+  if (!kcdp.length) throw new Error("Script property KCDP_EMAILS is not set.");
   return {
-    team: team,
+    kcdp: kcdp,
+    kcdd: addresses_(props.getProperty("KCDD_EMAILS")),
     sponsorDocId: props.getProperty("SPONSOR_DOC_ID") || "",
     siteUrl: props.getProperty("SITE_URL") || "https://kcdataprofessionals.org",
     dailyLimit: Number(props.getProperty("DAILY_LIMIT")) || 20
   };
+}
+
+/** Splits a comma-separated property into trimmed, non-empty addresses. */
+function addresses_(value) {
+  return String(value || "")
+    .split(",")
+    .map(function (address) { return address.trim(); })
+    .filter(Boolean);
 }
 
 /** Counts today's submissions; false once the limit is reached. Call under the lock. */
@@ -208,8 +226,8 @@ function sendEmail_(formName, form, values, config) {
     : speakerEmail_(form, values, config);
   MailApp.sendEmail({
     to: values.email,
-    cc: config.team.join(","),
-    replyTo: config.team[0],
+    cc: config.kcdp.join(","),
+    replyTo: config.kcdp[0],
     name: SENDER_NAME,
     subject: message.subject,
     htmlBody: message.html,
@@ -230,7 +248,7 @@ function sponsorshipEmail_(form, values, config) {
       (attachments.length
         ? "Our sponsorship levels are attached."
         : "We'll send over our sponsorship levels shortly."),
-    "The KCDP organizers are copied on this email. Reply all with any questions and we'll find a time to talk.",
+    "Reply to this email with any questions and we'll find a time to talk.",
     "As a reminder, KCDP is practitioner-led and vendor-neutral: sponsors support the community, but don't choose topics or speakers, and there are no sales pitches from the stage."
   ];
   return compose_(
@@ -295,11 +313,113 @@ function respond_(viaJs, result) {
   var siteUrl = "https://kcdataprofessionals.org";
   try { siteUrl = config_().siteUrl; } catch (ignored) {}
   var message = result.ok
-    ? "Thanks! Check your inbox for a copy. The KCDP organizers are copied and will follow up."
+    ? "Thanks! Check your inbox for a copy. We'll follow up soon."
     : (result.error || "Something went wrong sending the form.") + " Please go back and try again.";
   return HtmlService.createHtmlOutput(
     '<div style="font-family:system-ui,sans-serif;max-width:32rem;margin:3rem auto;line-height:1.6">' +
     "<p>" + escape_(message) + "</p>" +
     '<p><a href="' + escape_(siteUrl) + '" target="_top">Back to kcdataprofessionals.org</a></p></div>'
   ).setTitle("Kansas City Data Professionals");
+}
+
+// ---------------------------------------------------------------------------
+// Sponsor approval (run from the spreadsheet's KCDP menu)
+// ---------------------------------------------------------------------------
+
+var APPROVED_PREFIX = "Approved";
+
+/** Adds the KCDP menu whenever an organizer opens the spreadsheet. */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("KCDP")
+    .addItem("Approve selected sponsor", "approveSelectedSponsor")
+    .addToUi();
+}
+
+/** Menu action: confirms, then emails the selected sponsor with KCDP and KC Digital Drive copied. */
+function approveSelectedSponsor() {
+  var ui = SpreadsheetApp.getUi();
+  var sheet = SpreadsheetApp.getActiveSheet();
+  if (sheet.getName() !== FORMS.sponsorship.sheet) {
+    ui.alert("Open the " + FORMS.sponsorship.sheet + " tab and click a cell in the sponsor's row first.");
+    return;
+  }
+  var rowIndex = sheet.getActiveRange().getRow();
+  if (rowIndex < 2) {
+    ui.alert("Click a cell in the sponsor's row (not the header) first.");
+    return;
+  }
+
+  var config = config_();
+  var sponsor = readSponsorRow_(sheet, rowIndex);
+  if (!sponsor.email) {
+    ui.alert("Row " + rowIndex + " has no email address.");
+    return;
+  }
+  var already = String(sponsor.status).indexOf(APPROVED_PREFIX) === 0;
+  var question =
+    (already ? sponsor.organization + " is already marked " + sponsor.status + ". Send the welcome email again?\n\n" : "") +
+    "Email " + sponsor.name + " <" + sponsor.email + "> at " + sponsor.organization +
+    " to confirm the sponsorship, copying:\n" + approvalCc_(config).join(", ");
+  if (ui.alert("Approve sponsor", question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  approveSponsorRow_(sheet, rowIndex, config);
+  ui.alert("Sent. Row " + rowIndex + " is marked " + sheet.getRange(rowIndex, 2).getValue() + ".");
+}
+
+/** Sends the approval email for one Sponsorship row and updates its Status. */
+function approveSponsorRow_(sheet, rowIndex, config) {
+  var sponsor = readSponsorRow_(sheet, rowIndex);
+  var message = approvalEmail_(sponsor, config.kcdd.length > 0);
+  MailApp.sendEmail({
+    to: sponsor.email,
+    cc: approvalCc_(config).join(","),
+    replyTo: config.kcdp[0],
+    name: SENDER_NAME,
+    subject: message.subject,
+    htmlBody: message.html,
+    body: message.text
+  });
+  var stamp = Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd");
+  sheet.getRange(rowIndex, 2).setValue(APPROVED_PREFIX + " " + stamp);
+}
+
+/** KCDP organizers plus KC Digital Drive, without duplicates. */
+function approvalCc_(config) {
+  var seen = {};
+  return config.kcdp.concat(config.kcdd).filter(function (address) {
+    var key = address.toLowerCase();
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+}
+
+/** Reads a Sponsorship row by the same column order appendRow_ writes. */
+function readSponsorRow_(sheet, rowIndex) {
+  var fields = FORMS.sponsorship.fields;
+  var cells = sheet.getRange(rowIndex, 1, 1, fields.length + 3).getValues()[0];
+  var sponsor = { status: cells[1] };
+  fields.forEach(function (field, i) {
+    sponsor[field.name] = String(cells[i + 2] == null ? "" : cells[i + 2]).replace(/^'/, "").trim();
+  });
+  return sponsor;
+}
+
+function approvalEmail_(sponsor, withKcdd) {
+  var paragraphs = [
+    "Hi " + firstName_(sponsor.name) + ",",
+    "Great news: we'd love to have " + sponsor.organization + " as a Kansas City Data Professionals sponsor. Thank you for supporting the community.",
+    (withKcdd
+      ? "I've copied the KCDP organizers and our community partners at KC Digital Drive"
+      : "I've copied the KCDP organizers") +
+      " so we can work out next steps together: timing, venue or food logistics, and how we'll recognize your support. Reply all and we'll take it from there."
+  ];
+  var html = paragraphs.map(function (p) { return "<p>" + escape_(p) + "</p>"; }).join("") +
+    '<p style="margin-top:24px;color:#4f5d68">Kansas City Data Professionals<br>Connecting Kansas City\u2019s data community.</p>';
+  return {
+    subject: "Welcome aboard: " + sponsor.organization + " and Kansas City Data Professionals",
+    html: html,
+    text: paragraphs.join("\n\n") + "\n\nKansas City Data Professionals"
+  };
 }
