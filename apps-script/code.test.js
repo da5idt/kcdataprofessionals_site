@@ -9,8 +9,9 @@ const vm = require("node:vm");
 
 const SOURCE = fs.readFileSync(path.join(__dirname, "Code.gs"), "utf8");
 
-function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } = {}) {
+function load({ props = {}, mailThrows = false, answer = "YES", replies = [], slackStatus = 200, slackThrows = false } = {}) {
   const sent = [];
+  const posts = [];
   const sheets = {};
   const cache = {};
   const properties = { KCDP_EMAILS: "a@kcdp.org, b@kcdp.org", KCDD_EMAILS: "aaron@kcdd.org,jim@kcdd.org", ...props };
@@ -23,6 +24,7 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } =
       appendRow: (row) => rows.push(row.slice()),
       setFrozenRows() {},
       getName: () => name,
+      getSheetId: () => (name === "Sponsorship" ? 111 : 222),
       getRange: (r, c, nr = 1, nc = 1) => ({
         setFontWeight() { return this; },
         setValue: (v) => { rows[r - 1][c - 1] = v; },
@@ -72,6 +74,7 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } =
       getUi: () => ui,
       getActiveSheet: () => selection.sheet,
       getActiveSpreadsheet: () => ({
+        getUrl: () => "https://docs.google.com/spreadsheets/d/SHEET/edit",
         getSheetByName: (n) => sheets[n] || null,
         insertSheet: (n) => (sheets[n] = makeSheet(n)),
       }),
@@ -80,6 +83,13 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } =
       getFileById: (id) => ({
         getAs: (mime) => ({ id, mime, setName(n) { this.name = n; return this; } }),
       }),
+    },
+    UrlFetchApp: {
+      fetch: (url, options) => {
+        if (slackThrows) throw new Error("DNS error");
+        posts.push({ url, ...options, body: JSON.parse(options.payload) });
+        return { getResponseCode: () => slackStatus, getContentText: () => "ok" };
+      },
     },
     MailApp: {
       sendEmail: (msg) => {
@@ -98,7 +108,7 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } =
     selection.sheet = sheets[sheetName];
     selection.sheet.getActiveRange = () => ({ getRow: () => row });
   };
-  return { post, sent, sheets, properties, context, ui, select };
+  return { post, sent, posts, sheets, properties, context, ui, select };
 }
 
 const speaker = (extra = {}) => ({
@@ -309,4 +319,72 @@ test("an address in both groups is copied once", () => {
   select("Sponsorship", 2);
   context.confirmSelectedSponsor();
   assert.equal(sent[1].cc, "a@kcdp.org,b@kcdp.org,jim@kcdd.org");
+});
+
+const SLACK = {
+  SLACK_SPONSORSHIP_WEBHOOK_URL: "https://hooks.slack.com/services/SPONSOR",
+  SLACK_SPEAKERS_WEBHOOK_URL: "https://hooks.slack.com/services/SPEAKERS",
+};
+
+test("each form posts to its own Slack channel", () => {
+  const { post, posts } = load({ props: SLACK });
+  post(sponsor({ role: "CTO", message: "Line one\nLine two" }), { interest: ["Venue host"] });
+  post(speaker({ format: "Lightning talk" }));
+
+  assert.equal(posts.length, 2);
+  assert.equal(posts[0].url, SLACK.SLACK_SPONSORSHIP_WEBHOOK_URL);
+  assert.equal(posts[0].method, "post");
+  assert.equal(posts[0].body.text, [
+    ":handshake: *New sponsor inquiry:* Navy",
+    "Grace Hopper (grace@example.com) \u00b7 CTO",
+    "Interested in: Venue host",
+    "> Line one\n> Line two",
+    "<https://docs.google.com/spreadsheets/d/SHEET/edit#gid=111|Open the Sponsorship tab>",
+  ].join("\n"));
+
+  assert.equal(posts[1].url, SLACK.SLACK_SPEAKERS_WEBHOOK_URL);
+  assert.match(posts[1].body.text, /^:microphone: \*New talk proposal:\* \u201cEngines\u201d/);
+  assert.match(posts[1].body.text, /Format: Lightning talk/);
+  assert.match(posts[1].body.text, /#gid=222\|Open the Speakers tab>$/);
+});
+
+test("the invoicing step posts to the sponsorship channel", () => {
+  const { post, posts, context, select } = load({ ...INVOICE, props: SLACK });
+  post(sponsor());
+  select("Sponsorship", 2);
+  context.confirmSelectedSponsor();
+  assert.equal(posts.length, 2);
+  assert.equal(posts[1].url, SLACK.SLACK_SPONSORSHIP_WEBHOOK_URL);
+  assert.match(posts[1].body.text, /^:receipt: \*Invoice requested:\* Navy for the Thursday, November 19 event \(Event sponsor, \$500\)/);
+});
+
+test("without webhook properties nothing is posted", () => {
+  const { post, posts } = load();
+  post(sponsor());
+  post(speaker());
+  assert.equal(posts.length, 0);
+});
+
+test("Slack markup in submissions is escaped and long text is trimmed", () => {
+  const { post, posts } = load({ props: SLACK });
+  post(speaker({ talk_title: "<!channel> & <https://evil|click>", abstract: "x".repeat(400) }));
+  const text = posts[0].body.text;
+  assert.match(text, /&lt;!channel&gt; &amp; &lt;https:\/\/evil\|click&gt;/);
+  assert.ok(!text.includes("<!channel>"));
+  assert.match(text, /> x{300}\u2026/);
+});
+
+test("a failed email is flagged in the Slack post", () => {
+  const { post, posts } = load({ props: SLACK, mailThrows: true });
+  post(speaker());
+  assert.match(posts[0].body.text, /:warning: The confirmation email failed/);
+});
+
+test("Slack errors never break a submission", () => {
+  for (const opts of [{ slackStatus: 404 }, { slackThrows: true }]) {
+    const { post, sent, sheets } = load({ ...opts, props: SLACK });
+    assert.deepEqual(post(speaker()), { ok: true });
+    assert.equal(sent.length, 1);
+    assert.equal(sheets.Speakers.rows[1][1], "New");
+  }
 });

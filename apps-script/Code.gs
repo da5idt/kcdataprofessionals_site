@@ -29,6 +29,12 @@
  *                             document (a Google Doc or a PDF). Attached
  *                             to sponsorship emails as a PDF.
  *   SITE_URL        optional  Defaults to https://kcdataprofessionals.org
+ *   SLACK_SPONSORSHIP_WEBHOOK_URL
+ *                   optional  Slack incoming webhook for the sponsorship
+ *                             channel: new inquiries and invoice requests.
+ *   SLACK_SPEAKERS_WEBHOOK_URL
+ *                   optional  Slack incoming webhook for the speakers
+ *                             channel: new talk proposals.
  *   DAILY_LIMIT     optional  Most submissions accepted per day across both
  *                             forms. Defaults to 20. Each email counts once
  *                             per recipient (submitter plus every CC)
@@ -38,6 +44,7 @@
 var FORMS = {
   sponsorship: {
     sheet: "Sponsorship",
+    slackProperty: "SLACK_SPONSORSHIP_WEBHOOK_URL",
     fields: [
       { name: "name", label: "Name", required: true, max: 120 },
       { name: "email", label: "Email", required: true, max: 200, type: "email" },
@@ -50,6 +57,7 @@ var FORMS = {
   },
   speaker: {
     sheet: "Speakers",
+    slackProperty: "SLACK_SPEAKERS_WEBHOOK_URL",
     fields: [
       { name: "name", label: "Name", required: true, max: 120 },
       { name: "email", label: "Email", required: true, max: 200, type: "email" },
@@ -123,6 +131,7 @@ function handleSubmission_(params, multiParams) {
     lock.releaseLock();
   }
 
+  var emailed = true;
   try {
     sendEmail_(params.form, form, values, config);
     row.sheet.getRange(row.index, 2).setValue("New");
@@ -130,7 +139,9 @@ function handleSubmission_(params, multiParams) {
     // The submission is saved either way; flag it so the team follows up.
     console.error(err && err.stack ? err.stack : err);
     row.sheet.getRange(row.index, 2).setValue("New: email failed, follow up by hand");
+    emailed = false;
   }
+  postToSlack_(form.slackProperty, submissionSlackText_(params.form, values, row.sheet, emailed));
   return { ok: true };
 }
 
@@ -415,6 +426,11 @@ function confirmSponsorRow_(sheet, rowIndex, config, details) {
   sheet.getRange(rowIndex, 2).setValue(
     asText_(INVOICE_PREFIX + " " + stamp + " · " + details.date + (details.level ? " · " + details.level : ""))
   );
+  postToSlack_(FORMS.sponsorship.slackProperty,
+    ":receipt: *Invoice requested:* " + slackEscape_(sponsor.organization) +
+    " for the " + slackEscape_(details.date) + " event" +
+    (details.level ? " (" + slackEscape_(details.level) + ")" : "") +
+    ". Sponsor emailed with KC Digital Drive copied.\n" + sheetLink_(sheet));
 }
 
 /** KCDP organizers plus KC Digital Drive, without duplicates. */
@@ -472,4 +488,66 @@ function invoiceEmail_(sponsor, details) {
     html: html,
     text: text
   };
+}
+
+// ---------------------------------------------------------------------------
+// Slack (optional): one incoming webhook per channel, set in Script properties
+// ---------------------------------------------------------------------------
+
+/** Posts to the webhook in the named property. Never throws: Slack is a nice-to-have. */
+function postToSlack_(property, text) {
+  var url = PropertiesService.getScriptProperties().getProperty(property);
+  if (!url) return;
+  try {
+    var response = UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({ text: text }),
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() !== 200) {
+      console.error("Slack (" + property + ") returned " + response.getResponseCode() + ": " + response.getContentText());
+    }
+  } catch (err) {
+    console.error(err && err.stack ? err.stack : err);
+  }
+}
+
+function submissionSlackText_(formName, values, sheet, emailed) {
+  var who = slackEscape_(values.name) + " (" + slackEscape_(values.email) + ")" +
+    (values.role ? " · " + slackEscape_(values.role) : "");
+  var lines = formName === "sponsorship"
+    ? [
+        ":handshake: *New sponsor inquiry:* " + slackEscape_(values.organization),
+        who,
+        values.interest ? "Interested in: " + slackEscape_(values.interest) : "",
+        quote_(values.message)
+      ]
+    : [
+        ":microphone: *New talk proposal:* “" + slackEscape_(values.talk_title) + "”",
+        who,
+        [values.format && "Format: " + slackEscape_(values.format),
+         values.level && "Level: " + slackEscape_(values.level)].filter(Boolean).join(" · "),
+        quote_(values.abstract)
+      ];
+  if (!emailed) lines.push(":warning: The confirmation email failed. Follow up by hand.");
+  lines.push(sheetLink_(sheet));
+  return lines.filter(Boolean).join("\n");
+}
+
+/** A Slack block quote of the first 300 characters. */
+function quote_(text) {
+  if (!text) return "";
+  var short = text.length > 300 ? text.slice(0, 300).trim() + "…" : text;
+  return slackEscape_(short).split("\n").map(function (line) { return "> " + line; }).join("\n");
+}
+
+function sheetLink_(sheet) {
+  var url = SpreadsheetApp.getActiveSpreadsheet().getUrl() + "#gid=" + sheet.getSheetId();
+  return "<" + url + "|Open the " + sheet.getName() + " tab>";
+}
+
+/** Slack treats &, < and > as markup; everything else is plain text. */
+function slackEscape_(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
