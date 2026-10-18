@@ -10,7 +10,7 @@
  *      organizers (KCDP_EMAILS) copied. KCDP reviews and approves the
  *      sponsor in that email thread and agrees an event date.
  *   2. Invoicing: an organizer selects the sponsor's row and chooses
- *      KCDP > Confirm sponsor & request invoice, entering the event date and
+ *      KCDP > Confirm sponsor & request invoice, picking the event date and
  *      level. That emails the sponsor with KCDP and KC Digital Drive
  *      (KCDD_EMAILS) copied so KCDD can invoice them, and updates the row's
  *      Status.
@@ -28,6 +28,10 @@
  *   SPONSOR_DOC_ID  optional  Drive file ID of the sponsorship levels
  *                             document (a Google Doc or a PDF). Attached
  *                             to sponsorship emails as a PDF.
+ *   SPONSOR_LEVELS  optional  Choices for the invoicing dropdown, separated
+ *                             by semicolons, e.g.
+ *                             Bronze $250; Silver $500; Gold $1,000
+ *                             Defaults to Bronze; Silver; Gold.
  *   SITE_URL        optional  Defaults to https://kcdataprofessionals.org
  *   SLACK_SPONSORSHIP_WEBHOOK_URL
  *                   optional  Slack incoming webhook for the sponsorship
@@ -186,10 +190,20 @@ function config_() {
   return {
     kcdp: kcdp,
     kcdd: addresses_(props.getProperty("KCDD_EMAILS")),
+    levels: levels_(props.getProperty("SPONSOR_LEVELS")),
     sponsorDocId: props.getProperty("SPONSOR_DOC_ID") || "",
     siteUrl: props.getProperty("SITE_URL") || "https://kcdataprofessionals.org",
     dailyLimit: Number(props.getProperty("DAILY_LIMIT")) || 20
   };
+}
+
+/** Sponsorship levels for the invoicing dropdown, one per semicolon. */
+function levels_(value) {
+  var levels = String(value || "")
+    .split(/[;\n]/)
+    .map(function (level) { return level.trim(); })
+    .filter(Boolean);
+  return levels.length ? levels : ["Bronze", "Silver", "Gold"];
 }
 
 /** Splits a comma-separated property into trimmed, non-empty addresses. */
@@ -354,7 +368,11 @@ function onOpen() {
     .addToUi();
 }
 
-/** Menu action: asks for the event date and level, confirms, then sends the invoicing email. */
+/**
+ * Menu action: checks the selected row, then opens a dialog with a date
+ * picker and a sponsorship level dropdown. The dialog calls
+ * submitInvoiceRequest() when the organizer clicks Send.
+ */
 function confirmSelectedSponsor() {
   var ui = SpreadsheetApp.getUi();
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -363,50 +381,94 @@ function confirmSelectedSponsor() {
     return;
   }
   var rowIndex = sheet.getActiveRange().getRow();
-  if (rowIndex < 2) {
-    ui.alert("Click a cell in the sponsor's row (not the header) first.");
-    return;
-  }
-
   var config = config_();
-  if (!config.kcdd.length) {
-    ui.alert("Add KC Digital Drive's addresses to the KCDD_EMAILS script property first.");
+  var problem = sponsorRowProblem_(sheet, rowIndex, config);
+  if (problem) {
+    ui.alert(problem);
     return;
   }
   var sponsor = readSponsorRow_(sheet, rowIndex);
-  if (!sponsor.email) {
-    ui.alert("Row " + rowIndex + " has no email address.");
-    return;
-  }
-  if (String(sponsor.status).indexOf(INVOICE_PREFIX) === 0 &&
-      ui.alert("Already sent", sponsor.organization + " is marked “" + sponsor.status +
-        ".” Send the invoicing email again?", ui.ButtonSet.YES_NO) !== ui.Button.YES) {
-    return;
-  }
-
-  var date = ask_(ui, "Event date", "Which event is " + sponsor.organization + " sponsoring? (for example: Thursday, November 19)", true);
-  if (date === null) return;
-  var level = ask_(ui, "Sponsorship level", "Sponsorship level or amount to invoice (optional; for example: Event sponsor, $500)", false);
-  if (level === null) return;
-
-  var question =
-    "Email " + sponsor.name + " <" + sponsor.email + "> at " + sponsor.organization +
-    " to confirm sponsorship of the " + date + " event" + (level ? " (" + level + ")" : "") +
-    ", copying KC Digital Drive for invoicing:\n" + invoiceCc_(config).join(", ");
-  if (ui.alert("Confirm sponsor & request invoice", question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-
-  confirmSponsorRow_(sheet, rowIndex, config, { date: date, level: level });
-  ui.alert("Sent. Row " + rowIndex + " is marked “" + sheet.getRange(rowIndex, 2).getValue() + ".”");
+  var html = HtmlService.createHtmlOutput(invoiceDialogHtml_(sponsor, rowIndex, config))
+    .setWidth(460)
+    .setHeight(420);
+  ui.showModalDialog(html, "Confirm sponsor & request invoice");
 }
 
-/** Prompts for a line of text; null if cancelled. Re-asks while a required answer is blank. */
-function ask_(ui, title, prompt, required) {
-  while (true) {
-    var response = ui.prompt(title, prompt, ui.ButtonSet.OK_CANCEL);
-    if (response.getSelectedButton() !== ui.Button.OK) return null;
-    var text = clean_(response.getResponseText(), 200);
-    if (text || !required) return text;
+/**
+ * Called from the dialog. isoDate comes from the date picker (yyyy-mm-dd);
+ * level must be one of SPONSOR_LEVELS. Returns the row's new Status.
+ */
+function submitInvoiceRequest(rowIndex, isoDate, level) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(FORMS.sponsorship.sheet);
+  var config = config_();
+  var problem = sponsorRowProblem_(sheet, rowIndex, config);
+  if (problem) throw new Error(problem);
+
+  var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(isoDate || ""));
+  if (!match) throw new Error("Choose the event date.");
+  if (config.levels.indexOf(level) === -1) throw new Error("Choose a sponsorship level.");
+
+  var date = Utilities.formatDate(
+    new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12),
+    "America/Chicago",
+    "EEEE, MMMM d, yyyy"
+  );
+  confirmSponsorRow_(sheet, rowIndex, config, { date: date, level: level });
+  return sheet.getRange(rowIndex, 2).getValue();
+}
+
+/** Why a row can't be invoiced, or null if it can. */
+function sponsorRowProblem_(sheet, rowIndex, config) {
+  if (!sheet) return "There is no " + FORMS.sponsorship.sheet + " tab yet.";
+  if (!(rowIndex >= 2) || rowIndex > sheet.getLastRow()) {
+    return "Click a cell in the sponsor's row (not the header) first.";
   }
+  if (!config.kcdd.length) return "Add KC Digital Drive's addresses to the KCDD_EMAILS script property first.";
+  if (!readSponsorRow_(sheet, rowIndex).email) return "Row " + rowIndex + " has no email address.";
+  return null;
+}
+
+function invoiceDialogHtml_(sponsor, rowIndex, config) {
+  var already = String(sponsor.status).indexOf(INVOICE_PREFIX) === 0
+    ? '<p class="warn">Already marked “' + escape_(sponsor.status) + '.” Sending again emails the sponsor and KC Digital Drive a second time.</p>'
+    : "";
+  var options = config.levels.map(function (level) {
+    return "<option>" + escape_(level) + "</option>";
+  }).join("");
+  return [
+    "<!doctype html><html><head><base target=\"_top\"><style>",
+    "body{font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#15232e;margin:0}",
+    "label{display:block;font-weight:600;margin:14px 0 4px}",
+    "input,select{width:100%;box-sizing:border-box;padding:8px;font:inherit;border:1px solid #cfcabd;border-radius:6px}",
+    ".who{background:#f2f0ea;border-radius:6px;padding:10px 12px;margin:0 0 4px}",
+    ".cc{color:#4f5d68;font-size:13px;word-break:break-word}",
+    ".warn{background:#fdf3e2;border:1px solid #f3d9a8;border-radius:6px;padding:8px 10px;color:#6b4a12}",
+    ".actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}",
+    "button{font:600 14px system-ui,sans-serif;padding:8px 16px;border-radius:6px;cursor:pointer;border:1px solid #244c66}",
+    "#send{background:#244c66;color:#fff}#cancel{background:#fff;color:#244c66}",
+    "button[disabled]{opacity:.5;cursor:default}#error{color:#a33a26;font-weight:600}",
+    "</style></head><body>",
+    '<p class="who"><strong>' + escape_(sponsor.organization) + "</strong><br>" +
+      escape_(sponsor.name) + " &lt;" + escape_(sponsor.email) + "&gt;</p>",
+    already,
+    '<form id="f">',
+    '<label for="date">Event date</label><input type="date" id="date" required>',
+    '<label for="level">Sponsorship level</label>',
+    '<select id="level" required><option value="">Choose a level…</option>' + options + "</select>",
+    '<p class="cc">The sponsor is emailed with these people copied, so KC Digital Drive can send the invoice:<br>' +
+      escape_(invoiceCc_(config).join(", ")) + "</p>",
+    '<p id="error"></p>',
+    '<div class="actions"><button type="button" id="cancel">Cancel</button>',
+    '<button type="submit" id="send">Send</button></div>',
+    "</form><script>",
+    "var f=document.getElementById('f'),send=document.getElementById('send'),err=document.getElementById('error');",
+    "document.getElementById('cancel').onclick=function(){google.script.host.close();};",
+    "f.onsubmit=function(e){e.preventDefault();if(!f.reportValidity())return;send.disabled=true;send.textContent='Sending…';err.textContent='';",
+    "google.script.run.withSuccessHandler(function(){google.script.host.close();})",
+    ".withFailureHandler(function(x){send.disabled=false;send.textContent='Send';err.textContent=x.message||String(x);})",
+    ".submitInvoiceRequest(" + Number(rowIndex) + ",document.getElementById('date').value,document.getElementById('level').value);};",
+    "</script></body></html>"
+  ].join("");
 }
 
 /** Sends the invoicing email for one Sponsorship row and updates its Status. */

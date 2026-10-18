@@ -26,8 +26,8 @@ Confirm sponsor & request invoice (spreadsheet's KCDP menu)
   - **Invoicing** is the only email that copies KC Digital Drive (`KCDD_EMAILS`). KCDP reviews and approves each sponsor in the inquiry email thread and agrees an event date. Then, in the sheet:
     1. Click any cell in the sponsor's row on the `Sponsorship` tab.
     2. Choose **KCDP → Confirm sponsor & request invoice**. The menu appears a few seconds after the sheet opens; reload the sheet if it's missing.
-    3. Enter the event date (required) and the sponsorship level or amount (optional), then confirm.
-    4. The sponsor gets an email confirming the event, with KCDP and KC Digital Drive copied and a summary KCDD can invoice from (organization, contact, event, level, website). The row's Status changes to `Invoice requested <today> · <event> · <level>`.
+    3. In the dialog, pick the **event date** from the date picker and the **sponsorship level** from the dropdown. The dialog also shows who will be emailed. Click **Send**.
+    4. The sponsor gets an email confirming the event, with KCDP and KC Digital Drive copied and a summary KCDD can invoice from (organization, contact, event, level, website). The row's Status changes to `Invoice requested <today> · <event date> · <level>`.
   - Form emails come from the account that deployed the script. Invoicing emails come from whoever clicks the menu item, and each organizer approves Google's permission prompt the first time they use it.
 - **Slack (optional):** each form posts to its own channel through a Slack incoming webhook. New sponsor inquiries and invoice requests go to the sponsorship channel; new talk proposals go to the speakers channel. Posts include the submitter's name and email, so use private channels. If Slack is unavailable, the submission still saves and emails as normal.
 - **Cost and limits:** free. A personal Gmail account can send to about 100 recipients a day through Apps Script (each email counts the submitter plus every CC), so with up to three people copied (four recipients per email) the script accepts at most 20 submissions a day by default (`DAILY_LIMIT`). A Google Workspace account allows far more if you ever need it.
@@ -53,7 +53,7 @@ flowchart TD
     F -- No --> G[Reply to the sponsor<br/>and update Status, e.g. Declined]
     F -- Yes --> H[Agree an event date<br/>with the sponsor]
     H --> I["In the sheet: select the sponsor's row,<br/>KCDP menu: Confirm sponsor & request invoice"]
-    I --> J[Enter the event date<br/>and sponsorship level, then confirm]
+    I --> J[Pick the event date and<br/>sponsorship level, then Send]
     J --> K["Email to sponsor confirming the event,<br/>with an invoice summary<br/>CC: KCDP_EMAILS + KCDD_EMAILS"]
     K --> L["Status: Invoice requested<br/>date · event · level"]
     K --> S2[Post in the sponsorship<br/>Slack channel]
@@ -113,6 +113,7 @@ Use the shared KCDP Google account if there is one, so the forms don't depend on
    | --- | --- |
    | `KCDP_EMAILS` | KCDP organizers, comma-separated. Copied on every form email; the first address is the Reply-To. |
    | `KCDD_EMAILS` | KC Digital Drive contacts, comma-separated. Copied only on the invoicing email. |
+   | `SPONSOR_LEVELS` | Choices for the invoicing dropdown, separated by semicolons, with prices as they appear in the levels document, e.g. `Bronze $250; Silver $500; Gold $1,000`. Defaults to `Bronze; Silver; Gold`. |
    | `SLACK_SPONSORSHIP_WEBHOOK_URL` | Optional. Webhook URL for the sponsorship Slack channel (see below). |
    | `SLACK_SPEAKERS_WEBHOOK_URL` | Optional. Webhook URL for the speakers Slack channel. |
    | `SPONSOR_DOC_ID` | The file ID from step 3 |
@@ -137,6 +138,7 @@ You must be a member of a private channel for it to appear in the picker. Treat 
 
 ## Changing things later
 
+- **Sponsorship levels or prices:** edit `SPONSOR_LEVELS` in Script properties when the levels document changes. No redeploy needed.
 - **Who gets copied:** edit `KCDP_EMAILS` or `KCDD_EMAILS` in Script properties. No redeploy needed.
 - **The sponsorship levels document:** upload the new file and update `SPONSOR_DOC_ID`, or edit the existing Google Doc in place (the email always attaches its current version).
 - **Email wording or form fields:** edit `apps-script/Code.gs` in this repo, run the tests, paste the file into the Apps Script editor, then **Deploy → Manage deployments → Edit → Version: New version → Deploy**. Editing the existing deployment keeps the same URL. A field added to the site's form must also be added to `FORMS` in `Code.gs`, or it won't be saved.

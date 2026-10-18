@@ -9,7 +9,7 @@ const vm = require("node:vm");
 
 const SOURCE = fs.readFileSync(path.join(__dirname, "Code.gs"), "utf8");
 
-function load({ props = {}, mailThrows = false, answer = "YES", replies = [], slackStatus = 200, slackThrows = false } = {}) {
+function load({ props = {}, mailThrows = false, answer = "YES", slackStatus = 200, slackThrows = false } = {}) {
   const sent = [];
   const posts = [];
   const sheets = {};
@@ -35,20 +35,9 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [], sl
   };
   const ui = {
     alerts: [],
-    prompts: [],
-    replies: replies.slice(),
-    ButtonSet: { YES_NO: "YES_NO", OK_CANCEL: "OK_CANCEL" },
-    Button: { YES: "YES", NO: "NO", OK: "OK", CANCEL: "CANCEL" },
+    dialogs: [],
+    showModalDialog(output, title) { ui.dialogs.push({ html: output.html, title }); },
     alert(...args) { ui.alerts.push(args); return args.length > 1 ? answer : "OK"; },
-    // Each reply is a string (typed, then OK) or null (Cancel).
-    prompt(title, text) {
-      ui.prompts.push(title);
-      const reply = ui.replies.length ? ui.replies.shift() : "";
-      return {
-        getSelectedButton: () => (reply === null ? "CANCEL" : "OK"),
-        getResponseText: () => reply || "",
-      };
-    },
   };
   const selection = { sheet: null, row: 0 };
 
@@ -58,7 +47,14 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [], sl
       MimeType: { JSON: "json" },
       createTextOutput: (text) => ({ text, setMimeType() { return this; } }),
     },
-    HtmlService: { createHtmlOutput: (html) => ({ html, setTitle() { return this; } }) },
+    HtmlService: {
+      createHtmlOutput: (html) => ({
+        html,
+        setTitle() { return this; },
+        setWidth() { return this; },
+        setHeight() { return this; },
+      }),
+    },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     CacheService: {
       getScriptCache: () => ({ get: (k) => cache[k] || null, put: (k, v) => { cache[k] = v; } }),
@@ -69,7 +65,12 @@ function load({ props = {}, mailThrows = false, answer = "YES", replies = [], sl
         setProperty: (k, v) => { properties[k] = v; },
       }),
     },
-    Utilities: { formatDate: () => "2026-10-14" },
+    Utilities: {
+      formatDate: (date, tz, pattern) =>
+        pattern === "yyyy-MM-dd"
+          ? "2026-10-14"
+          : date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
+    },
     SpreadsheetApp: {
       getUi: () => ui,
       getActiveSheet: () => selection.sheet,
@@ -230,94 +231,101 @@ test("new sponsor inquiries copy KCDP but not KC Digital Drive", () => {
   assert.equal(sent[0].replyTo, "a@kcdp.org");
 });
 
-const INVOICE = { replies: ["Thursday, November 19", "Event sponsor, $500"] };
+const LEVELS = { SPONSOR_LEVELS: "Bronze $250; Silver $500; Gold $1,000" };
 
-test("confirming a sponsor copies KCDP and KC Digital Drive for invoicing and updates Status", () => {
-  const { post, sent, sheets, context, select, ui } = load(INVOICE);
-  post(sponsor({ organization: "=Navy", website: "https://navy.example" }));
+test("the invoicing menu opens a dialog with a date picker, the levels and the CC list", () => {
+  const { post, context, select, ui } = load({ props: LEVELS });
+  post(sponsor({ organization: "<Navy>" }));
   select("Sponsorship", 2);
   context.confirmSelectedSponsor();
 
-  assert.deepEqual(ui.prompts, ["Event date", "Sponsorship level"]);
+  assert.equal(ui.dialogs.length, 1);
+  const { html, title } = ui.dialogs[0];
+  assert.equal(title, "Confirm sponsor & request invoice");
+  assert.match(html, /<input type="date" id="date" required>/);
+  assert.match(html, /<option>Bronze \$250<\/option><option>Silver \$500<\/option><option>Gold \$1,000<\/option>/);
+  assert.match(html, /a@kcdp\.org, b@kcdp\.org, aaron@kcdd\.org, jim@kcdd\.org/);
+  assert.match(html, /&lt;Navy&gt;/);
+  assert.ok(!html.includes("<Navy>"));
+  assert.match(html, /submitInvoiceRequest\(2,/);
+});
+
+test("levels default to Bronze, Silver and Gold", () => {
+  const { post, context, select, ui } = load();
+  post(sponsor());
+  select("Sponsorship", 2);
+  context.confirmSelectedSponsor();
+  assert.match(ui.dialogs[0].html, /<option>Bronze<\/option><option>Silver<\/option><option>Gold<\/option>/);
+});
+
+test("sending from the dialog emails KCDP and KC Digital Drive and updates Status", () => {
+  const { post, sent, sheets, context } = load({ props: LEVELS });
+  post(sponsor({ organization: "=Navy", website: "https://navy.example" }));
+  const status = context.submitInvoiceRequest(2, "2026-11-19", "Silver $500");
+
   assert.equal(sent.length, 2);
   const invoice = sent[1];
   assert.equal(invoice.to, "grace@example.com");
   assert.equal(invoice.cc, "a@kcdp.org,b@kcdp.org,aaron@kcdd.org,jim@kcdd.org");
   assert.equal(invoice.replyTo, "a@kcdp.org");
-  assert.equal(invoice.subject, "=Navy sponsorship of KCDP (Thursday, November 19): invoicing");
+  assert.equal(invoice.subject, "=Navy sponsorship of KCDP (Thursday, November 19, 2026): invoicing");
   assert.match(invoice.body, /KC Digital Drive, who handle invoicing/);
-  assert.match(invoice.body, /- Sponsorship: Event sponsor, \$500/);
+  assert.match(invoice.body, /- Event: Thursday, November 19, 2026/);
+  assert.match(invoice.body, /- Sponsorship: Silver \$500/);
   assert.match(invoice.body, /- Website: https:\/\/navy.example/);
-  assert.equal(sheets.Sponsorship.rows[1][1], "Invoice requested 2026-10-14 \u00b7 Thursday, November 19 \u00b7 Event sponsor, $500");
-  assert.match(ui.alerts[0][1], /jim@kcdd.org/);
+  const expected = "Invoice requested 2026-10-14 · Thursday, November 19, 2026 · Silver $500";
+  assert.equal(sheets.Sponsorship.rows[1][1], expected);
+  assert.equal(status, expected);
 });
 
-test("the sponsorship level is optional", () => {
-  const { post, sent, sheets, context, select } = load({ replies: ["Nov 19", ""] });
+test("the dialog's request is checked again on the server", () => {
+  const { post, sent, context } = load({ props: LEVELS });
   post(sponsor());
-  select("Sponsorship", 2);
-  context.confirmSelectedSponsor();
-  assert.doesNotMatch(sent[1].body, /- Sponsorship:/);
-  assert.equal(sheets.Sponsorship.rows[1][1], "Invoice requested 2026-10-14 \u00b7 Nov 19");
+  assert.throws(() => context.submitInvoiceRequest(2, "", "Gold $1,000"), /Choose the event date/);
+  assert.throws(() => context.submitInvoiceRequest(2, "11/19/2026", "Gold $1,000"), /Choose the event date/);
+  assert.throws(() => context.submitInvoiceRequest(2, "2026-11-19", "Platinum $5,000"), /Choose a sponsorship level/);
+  assert.throws(() => context.submitInvoiceRequest(1, "2026-11-19", "Gold $1,000"), /not the header/);
+  assert.throws(() => context.submitInvoiceRequest(9, "2026-11-19", "Gold $1,000"), /not the header/);
+  assert.equal(sent.length, 1);
 });
 
-test("a blank event date is asked again", () => {
-  const { post, sent, context, select, ui } = load({ replies: ["  ", "Nov 19", ""] });
-  post(sponsor());
-  select("Sponsorship", 2);
-  context.confirmSelectedSponsor();
-  assert.deepEqual(ui.prompts, ["Event date", "Event date", "Sponsorship level"]);
-  assert.equal(sent.length, 2);
-});
-
-test("cancelling a prompt or answering No sends nothing", () => {
-  for (const opts of [{ replies: [null] }, { replies: ["Nov 19", null] }, { ...INVOICE, answer: "NO" }]) {
-    const { post, sent, sheets, context, select } = load(opts);
-    post(sponsor());
-    select("Sponsorship", 2);
-    context.confirmSelectedSponsor();
-    assert.equal(sent.length, 1);
-    assert.equal(sheets.Sponsorship.rows[1][1], "New");
-  }
-});
-
-test("confirming refuses the header row and other tabs", () => {
-  const { post, sent, context, select, ui } = load(INVOICE);
+test("the invoicing menu refuses the header row and other tabs", () => {
+  const { post, context, select, ui } = load();
   post(sponsor());
   post(speaker());
   select("Sponsorship", 1);
   context.confirmSelectedSponsor();
   select("Speakers", 2);
   context.confirmSelectedSponsor();
-  assert.equal(sent.length, 2);
+  assert.equal(ui.dialogs.length, 0);
   assert.match(ui.alerts[0][0], /not the header/);
   assert.match(ui.alerts[1][0], /Sponsorship tab/);
 });
 
-test("confirming twice asks before sending the invoicing email again", () => {
-  const { post, sent, context, select, ui } = load({ replies: ["Nov 19", "", "Nov 19", ""] });
+test("the dialog warns when the invoicing email was already sent", () => {
+  const { post, context, select, ui } = load({ props: LEVELS });
   post(sponsor());
+  context.submitInvoiceRequest(2, "2026-11-19", "Gold $1,000");
   select("Sponsorship", 2);
   context.confirmSelectedSponsor();
-  context.confirmSelectedSponsor();
-  assert.equal(sent.length, 3);
-  assert.equal(ui.alerts[2][0], "Already sent");
+  assert.match(ui.dialogs[0].html, /Already marked “Invoice requested 2026-10-14/);
 });
 
-test("confirming without KCDD_EMAILS stops and says what to set", () => {
-  const { post, sent, context, select, ui } = load({ ...INVOICE, props: { KCDD_EMAILS: "" } });
+test("invoicing without KCDD_EMAILS stops and says what to set", () => {
+  const { post, sent, context, select, ui } = load({ props: { KCDD_EMAILS: "" } });
   post(sponsor());
   select("Sponsorship", 2);
   context.confirmSelectedSponsor();
-  assert.equal(sent.length, 1);
+  assert.equal(ui.dialogs.length, 0);
   assert.match(ui.alerts[0][0], /KCDD_EMAILS/);
+  assert.throws(() => context.submitInvoiceRequest(2, "2026-11-19", "Gold"), /KCDD_EMAILS/);
+  assert.equal(sent.length, 1);
 });
 
 test("an address in both groups is copied once", () => {
-  const { post, sent, context, select } = load({ ...INVOICE, props: { KCDD_EMAILS: "A@kcdp.org, jim@kcdd.org" } });
+  const { post, sent, context } = load({ props: { KCDD_EMAILS: "A@kcdp.org, jim@kcdd.org" } });
   post(sponsor());
-  select("Sponsorship", 2);
-  context.confirmSelectedSponsor();
+  context.submitInvoiceRequest(2, "2026-11-19", "Gold");
   assert.equal(sent[1].cc, "a@kcdp.org,b@kcdp.org,jim@kcdd.org");
 });
 
@@ -349,13 +357,12 @@ test("each form posts to its own Slack channel", () => {
 });
 
 test("the invoicing step posts to the sponsorship channel", () => {
-  const { post, posts, context, select } = load({ ...INVOICE, props: SLACK });
+  const { post, posts, context } = load({ props: { ...SLACK, ...LEVELS } });
   post(sponsor());
-  select("Sponsorship", 2);
-  context.confirmSelectedSponsor();
+  context.submitInvoiceRequest(2, "2026-11-19", "Silver $500");
   assert.equal(posts.length, 2);
   assert.equal(posts[1].url, SLACK.SLACK_SPONSORSHIP_WEBHOOK_URL);
-  assert.match(posts[1].body.text, /^:receipt: \*Invoice requested:\* Navy for the Thursday, November 19 event \(Event sponsor, \$500\)/);
+  assert.match(posts[1].body.text, /^:receipt: \*Invoice requested:\* Navy for the Thursday, November 19, 2026 event \(Silver \$500\)/);
 });
 
 test("without webhook properties nothing is posted", () => {
