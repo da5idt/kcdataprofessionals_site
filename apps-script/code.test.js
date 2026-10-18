@@ -63,6 +63,8 @@ function load({ props = {}, mailThrows = false, answer = "YES", slackStatus = 20
       getScriptProperties: () => ({
         getProperty: (k) => (k in properties ? properties[k] : null),
         setProperty: (k, v) => { properties[k] = v; },
+        getKeys: () => Object.keys(properties),
+        deleteProperty: (k) => { delete properties[k]; },
       }),
     },
     Utilities: {
@@ -394,4 +396,14 @@ test("Slack errors never break a submission", () => {
     assert.equal(sent.length, 1);
     assert.equal(sheets.Speakers.rows[1][1], "New");
   }
+});
+
+test("the daily counter keeps only today's count property", () => {
+  const { post, properties } = load({ props: { "count:2026-10-12": "7", "count:2026-10-13": "3" } });
+  post(speaker());
+  post(speaker({ email: "second@example.com" }));
+  const counters = Object.keys(properties).filter((k) => k.startsWith("count:"));
+  assert.deepEqual(counters, ["count:2026-10-14"]);
+  assert.equal(properties["count:2026-10-14"], "2");
+  assert.equal(properties.KCDP_EMAILS, "a@kcdp.org, b@kcdp.org");
 });

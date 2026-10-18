@@ -146,6 +146,7 @@ You must be a member of a private channel for it to appear in the picker. Treat 
 
 ## If something goes wrong
 
+- **A `count:<date>` script property appeared:** that's the script's daily submission counter for the daily cap. It's created automatically, and older days are removed. Leave it alone; deleting it only resets today's count.
 - **Status says `New: email failed, follow up by hand`:** the row was saved but Gmail refused the email (usually the daily quota). Reply to the person manually.
 - **"Something went wrong" on the site:** open the Apps Script project's **Executions** page to see the error. A missing `KCDP_EMAILS` property is the most common cause.
 - **The site still says submissions aren't switched on:** `forms.endpoint` in `_config.yml` is empty, or the change hasn't been deployed to GitHub Pages yet.

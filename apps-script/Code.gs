@@ -214,12 +214,20 @@ function addresses_(value) {
     .filter(Boolean);
 }
 
-/** Counts today's submissions; false once the limit is reached. Call under the lock. */
+/**
+ * Counts today's submissions in a "count:<date>" script property; false once
+ * the limit is reached. Earlier days' counters are removed. Call under the lock.
+ */
 function takeDailySlot_(limit) {
   var props = PropertiesService.getScriptProperties();
   var key = "count:" + Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd");
   var count = Number(props.getProperty(key)) || 0;
   if (count >= limit) return false;
+  if (count === 0) {
+    props.getKeys().forEach(function (other) {
+      if (other.indexOf("count:") === 0 && other !== key) props.deleteProperty(other);
+    });
+  }
   props.setProperty(key, String(count + 1));
   return true;
 }
