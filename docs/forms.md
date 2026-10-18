@@ -31,6 +31,70 @@ Confirm sponsor & request invoice (spreadsheet's KCDP menu)
 - **Cost and limits:** free. A personal Gmail account can send to about 100 recipients a day through Apps Script (each email counts the submitter plus every CC), so with up to three people copied (four recipients per email) the script accepts at most 20 submissions a day by default (`DAILY_LIMIT`). A Google Workspace account allows far more if you ever need it.
 - **Spam and abuse:** a hidden honeypot field, a minimum fill time, one submission per email address per form every 10 minutes, and the daily cap. Values that look like spreadsheet formulas are stored as text.
 
+## Workflows
+
+Blue steps happen automatically, orange steps are done by a KCDP organizer, and white steps are the sponsor or speaker.
+
+### Sponsorship form
+
+```mermaid
+flowchart TD
+    A([Sponsor submits the form on /sponsorship]) --> B{Spam and<br/>validation checks}
+    B -- "Bot detected<br/>(honeypot or too fast)" --> X[Dropped silently]
+    B -- "Missing or invalid field,<br/>repeat within 10 min,<br/>or daily cap reached" --> Y[Error shown on the site]
+    B -- Passes --> C[Row added to the Sponsorship tab<br/>Status: New]
+    C --> D["Email to sponsor with the levels PDF<br/>CC: KCDP_EMAILS"]
+    D -. "If Gmail refuses" .-> D2[Status: New: email failed,<br/>follow up by hand]
+    D --> E[KCDP reviews the sponsor<br/>in the email thread]
+    E --> F{Approved?}
+    F -- No --> G[Reply to the sponsor<br/>and update Status, e.g. Declined]
+    F -- Yes --> H[Agree an event date<br/>with the sponsor]
+    H --> I["In the sheet: select the sponsor's row,<br/>KCDP menu: Confirm sponsor & request invoice"]
+    I --> J[Enter the event date<br/>and sponsorship level, then confirm]
+    J --> K["Email to sponsor confirming the event,<br/>with an invoice summary<br/>CC: KCDP_EMAILS + KCDD_EMAILS"]
+    K --> L["Status: Invoice requested<br/>date · event · level"]
+    L --> M([KC Digital Drive invoices the sponsor])
+
+    classDef auto fill:#dfe9f0,stroke:#244c66,color:#132b3c
+    classDef manual fill:#fdf3e2,stroke:#c98a1e,color:#5a3d0c
+    classDef stop fill:#f2f0ea,stroke:#9aa5ad,color:#4f5d68
+    classDef person fill:#ffffff,stroke:#244c66,color:#132b3c
+    class A person
+    class B,C,D,D2,K,L auto
+    class E,F,G,H,I,J,M manual
+    class X,Y stop
+```
+
+### Speaker form
+
+```mermaid
+flowchart TD
+    A([Speaker submits the form on /speak]) --> B{Spam and<br/>validation checks}
+    B -- "Bot detected<br/>(honeypot or too fast)" --> X[Dropped silently]
+    B -- "Missing or invalid field,<br/>repeat within 10 min,<br/>or daily cap reached" --> Y[Error shown on the site]
+    B -- Passes --> C[Row added to the Speakers tab<br/>Status: New]
+    C --> D["Email to speaker with a copy of the proposal<br/>CC: KCDP_EMAILS"]
+    D -. "If Gmail refuses" .-> D2[Status: New: email failed,<br/>follow up by hand]
+    D --> E[KCDP reviews the proposal<br/>and replies all in the thread]
+    E --> F{Good fit?}
+    F -- "Not yet" --> G[Suggest changes or another format,<br/>Status: e.g. Revising]
+    G --> E
+    F -- No --> H[Reply with thanks,<br/>Status: e.g. Declined]
+    F -- Yes --> I[Agree format and meetup date,<br/>Status: e.g. Scheduled]
+    I --> J([Talk added to the event listing])
+
+    classDef auto fill:#dfe9f0,stroke:#244c66,color:#132b3c
+    classDef manual fill:#fdf3e2,stroke:#c98a1e,color:#5a3d0c
+    classDef stop fill:#f2f0ea,stroke:#9aa5ad,color:#4f5d68
+    classDef person fill:#ffffff,stroke:#244c66,color:#132b3c
+    class A person
+    class B,C,D,D2 auto
+    class E,F,G,H,I,J manual
+    class X,Y stop
+```
+
+KC Digital Drive (`KCDD_EMAILS`) only appears in the sponsorship invoicing step. Status values other than `New`, `New: email failed…` and `Invoice requested…` are suggestions; type whatever suits the team, or add a dropdown to the Status column.
+
 ## One-time setup (about 15 minutes)
 
 Use the shared KCDP Google account if there is one, so the forms don't depend on one person's account.
