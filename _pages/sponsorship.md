@@ -18,7 +18,7 @@ classes:
   </a>
   <div>
     <h3>KC Digital Drive</h3>
-    <p class="sponsor-card__type">Community Partner</p>
+    <p class="sponsor-card__type">Founding Sponsor</p>
     <p>KC Digital Drive is a regional nonprofit founded in 2012 to improve quality of life across the Kansas City region through digital leadership. By brokering ideas and solutions through trusted relationships, KC Digital Drive strengthens the region’s tech innovation and digital inclusion ecosystems to expand opportunity and drive economic growth.</p>
   </div>
 </div>
