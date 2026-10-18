@@ -24,7 +24,7 @@ logo                     : "/assets/images/kcdp_logos_banner.png" # Site logo sh
 # Paste the Google Apps Script web app URL here after following
 # docs/forms.md. While it is empty the forms show but cannot be sent.
 forms:
-  endpoint: ""
+  endpoint: "https://script.google.com/macros/s/AKfycbxuWjBFmeEn8QMBTPeh4V35-S2Kp57L5Qj4ruC8knLoev8rXE4qJ1SqP2IBpDE55TF1/exec"
   fallback_url: "https://www.linkedin.com/company/kcdataprofessionals" # shown if the form is unavailable
 
 
