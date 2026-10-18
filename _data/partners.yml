@@ -1,0 +1,11 @@
+# Partner communities shown on the home page (#partners).
+# Entries without a url are skipped.
+- name: "Data Science KC"
+  url: "https://datasciencekc.org/"
+  description: "Kansas City's long-running data science meetup: monthly talks, paper club, and university and startup showcases."
+- name: "Kansas City Postgres User Group"
+  url: "https://www.meetup.com/kansas-city-postgres-user-group/"
+  description: "For people who use PostgreSQL day to day, with member-led talks on rotating topics."
+- name: "The Bar Chart Club"
+  url: "https://datadozen.com/bar-chart-club/"
+  description: "A quarterly meetup and annual conference for people who build charts from data."

@@ -1,22 +1,32 @@
-<div class="page__footer-follow">
-  <div class="footer-brand">
-    <img src="/assets/images/kcdp_logos_banner.png" alt="Kansas City Data Professionals logo">
-    <p class="footer-tagline">{{ site.tagline }}</p>
+<div class="site-footer__inner container">
+  <div class="site-footer__brand">
+    <img src="{{ site.logo | relative_url }}" alt="{{ site.title }}" width="2381" height="423" loading="lazy">
+    <p>{{ site.tagline }}</p>
   </div>
 
-  <ul class="socials">
-    {% for link in site.footer.links %}
-    {% if link.url %}
-    <li class="socials__item">
-      <a href="{{link.url}}" rel="noopener noreferrer nofollow" target="_blank" class="socials__item__link" title="{{link.label}}">
-        <i class="{{link.icon}} footer-icon" aria-hidden="true"></i>
+  <nav class="site-footer__links" aria-label="Footer">
+    <ul>
+      {%- for link in site.data.navigation.main %}
+      <li><a href="{{ link.url | relative_url }}">{{ link.title }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+
+  <ul class="site-footer__socials">
+    {%- for link in site.footer.links %}
+    {%- if link.url %}
+    <li>
+      <a href="{{ link.url }}" rel="noopener noreferrer" target="_blank" aria-label="{{ site.title }} on {{ link.label }}">
+        {% include icon.html name=link.icon %}
       </a>
     </li>
-    {% endif %}
-    {% endfor %}
+    {%- endif %}
+    {%- endfor %}
   </ul>
 </div>
 
-<div class="page__footer-copyright">
-  &copy; {{ site.time | date: '%Y' }} {{ site.footer.copyright | default: site.title }}.
+<div class="site-footer__bottom">
+  <p class="site-footer__copyright container">
+    &copy; {{ site.time | date: '%Y' }} {{ site.footer.copyright | default: site.title }}
+  </p>
 </div>

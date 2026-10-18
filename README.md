@@ -1,6 +1,6 @@
 # kcdataprofessionals_site
 
-This repository contains the Kansas City Data Professionals public website at [kcdataprofessionals.org](https://kcdataprofessionals.org), built with Jekyll and based on the OneFlow theme structure. Site settings and shared metadata are defined in `_config.yml`, page content is stored in `_pages/`, reusable UI building blocks are in `_includes/`, and theme/layout templates live in `_layouts/` and `_sass/`.
+This repository contains the Kansas City Data Professionals public website at [kcdataprofessionals.org](https://kcdataprofessionals.org), built with Jekyll (originally based on the OneFlow theme structure). Site settings and shared metadata are defined in `_config.yml`, page content is stored in `_pages/`, reusable UI building blocks are in `_includes/`, layout templates live in `_layouts/`, and all styling is in `assets/css/main.scss`.
 
 ## Table of contents
 
@@ -38,16 +38,18 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - Homepage sections/content: `_pages/index.html`
 - Add or edit pages: `_pages/*.md` or `_pages/*.html`
 - Sponsorship page content: `_pages/sponsorship.md`
+- Speaker page content: `_pages/speak.html`
+- Partner communities on the home page: `_data/partners.yml`
+- Sponsorship and speaker forms (Google Sheet + email workflow): [docs/forms.md](docs/forms.md), code in `apps-script/`
 - Sponsorship logos/assets: `assets/images/`
 - Navigation links in masthead: `_data/navigation.yml`
 - Header (masthead) markup/behavior: `_includes/masthead.html`
 - Footer markup: `_includes/footer.html`
 - Social links shown in footer: `_config.yml` under `footer.links`
-- Site-wide settings (title, URL, logo, background, footer metadata): `_config.yml`
+- Site-wide settings (title, URL, logo, footer metadata): `_config.yml`
 - Layout wrappers: `_layouts/default.html`, `_layouts/page.html`
-- Styling:
-  - Theme imports/skin: `assets/css/main.scss`
-  - Site-specific overrides: `assets/css/custom-styles.css`
+- Next event card and hero: `_data/next_event.yml` (update it with `scripts/update_next_event.py`) and `_includes/page__hero.html`
+- Styling: `assets/css/main.scss` (colours and fonts are CSS variables at the top)
 
 ## Contributor docs
 
@@ -57,3 +59,4 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - [Contribution Workflow](docs/contribution-workflow.md)
 - [Architecture](docs/architecture.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Sponsorship and speaker forms](docs/forms.md)

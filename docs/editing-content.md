@@ -45,17 +45,17 @@ Use this page for content and structure changes in the site source files.
 1. Edit content in `_pages/sponsorship.md` (copy, headings, sponsor cards).
 2. Add or update sponsor logos in `assets/images/`, then reference them with `<img src="/assets/images/...">`.
 3. If you need the link in the top navigation, add or update the entry in `_data/navigation.yml`.
-4. Adjust sponsor layout styles in `assets/css/custom-styles.css` (`.sponsor-grid`, `.sponsor-card`, `.sponsorship-page`).
+4. Adjust sponsor layout styles in `assets/css/main.scss` (`.sponsor-card`, `.principles`, `.support-options`, `.callout`).
 
 ## Edit navigation
 
-Update `_data/navigation.yml` (`main:` list). For homepage sections, use anchors like `/#purpose`; for standalone pages, use their permalink paths.
+Update `_data/navigation.yml` (`main:` list). For homepage sections, use anchors like `/#about`; for standalone pages, use their permalink paths. Set `button: true` on one entry to show it as the header's call-to-action button.
 
 ## Modify header (masthead)
 
 - Navigation source: `_data/navigation.yml`
 - Header template: `_includes/masthead.html`
-- Site-level masthead settings: `_config.yml` (`logo`, `masthead_title`, `subtitle`, `sticky-masthead`, `masthead-opacity`)
+- Logo: `_config.yml` (`logo`)
 
 ## Modify footer
 
@@ -71,20 +71,15 @@ Edit `_config.yml`:
 footer:
   links:
     - label: "LinkedIn"
-      icon: "fab fa-linkedin"
+      icon: "linkedin"
       url: "https://..."
 ```
 
-These links are rendered by `_includes/footer.html`.
+These links are rendered by `_includes/footer.html`. `icon` names an icon in `_includes/icon.html`; add a new `when` branch there for a new network.
 
 ## Styling changes
 
-- Theme imports/skin: `assets/css/main.scss`
-- Site-specific overrides: `assets/css/custom-styles.css`
-
-Prefer `assets/css/custom-styles.css` for local customization changes.
-
-Primary button and social hover colors are controlled by CSS variables in `assets/css/custom-styles.css`, including `--kcdp-primary` and `--kcdp-primary-hover`.
+All styles live in `assets/css/main.scss`. Colours, fonts, spacing and radii are CSS variables in its `:root` block (for example `--navy-700`, the logo colour, and `--signal`, the accent used for the "live" dot and focus rings), so most visual changes are a one-line edit there.
 
 ## Safe editing checklist
 

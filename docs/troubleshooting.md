@@ -44,9 +44,9 @@ Fix: Stop and restart Jekyll. Config changes are not fully hot-reloaded.
 
 ## Styling update not visible
 
-1. Edit `assets/css/custom-styles.css` for site overrides.
+1. Edit `assets/css/main.scss` (keep its front matter dashes at the top, or Jekyll will not compile it).
 2. Hard-refresh browser cache.
-3. Verify `assets/css/custom-styles.css` is linked in `_includes/head.html`.
+3. Verify `/assets/css/main.css` is linked in `_includes/head.html`.
 
 ## New page returns 404 locally
 

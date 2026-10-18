@@ -2,12 +2,21 @@
 layout: default
 ---
 
-{% if page.header.overlay_color or page.header.overlay_image or page.header.image %}
+{% if page.header.overlay_image %}
   {% include page__hero.html %}
-{% endif %}
-
-<div id="main" role="main">
-    <section class="page__content" itemprop="text">
+  {{ content }}
+{% else %}
+  <header class="page-header">
+    <div class="container">
+      {% if page.eyebrow %}<p class="eyebrow">{{ page.eyebrow }}</p>{% endif %}
+      <h1>{{ page.title }}</h1>
+      {% if page.lead %}<p class="page-header__lead">{{ page.lead }}</p>{% endif %}
+      {% if page.cta_url %}<p class="page-header__cta"><a class="btn btn--light" href="{{ page.cta_url }}">{{ page.cta_label }}</a></p>{% endif %}
+    </div>
+  </header>
+  <article class="page-body container">
+    <div class="prose">
       {{ content }}
-    </section>
-</div>
+    </div>
+  </article>
+{% endif %}
