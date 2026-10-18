@@ -9,7 +9,7 @@ const vm = require("node:vm");
 
 const SOURCE = fs.readFileSync(path.join(__dirname, "Code.gs"), "utf8");
 
-function load({ props = {}, mailThrows = false, answer = "YES" } = {}) {
+function load({ props = {}, mailThrows = false, answer = "YES", replies = [] } = {}) {
   const sent = [];
   const sheets = {};
   const cache = {};
@@ -33,9 +33,20 @@ function load({ props = {}, mailThrows = false, answer = "YES" } = {}) {
   };
   const ui = {
     alerts: [],
-    ButtonSet: { YES_NO: "YES_NO" },
-    Button: { YES: "YES", NO: "NO" },
+    prompts: [],
+    replies: replies.slice(),
+    ButtonSet: { YES_NO: "YES_NO", OK_CANCEL: "OK_CANCEL" },
+    Button: { YES: "YES", NO: "NO", OK: "OK", CANCEL: "CANCEL" },
     alert(...args) { ui.alerts.push(args); return args.length > 1 ? answer : "OK"; },
+    // Each reply is a string (typed, then OK) or null (Cancel).
+    prompt(title, text) {
+      ui.prompts.push(title);
+      const reply = ui.replies.length ? ui.replies.shift() : "";
+      return {
+        getSelectedButton: () => (reply === null ? "CANCEL" : "OK"),
+        getResponseText: () => reply || "",
+      };
+    },
   };
   const selection = { sheet: null, row: 0 };
 
@@ -209,68 +220,93 @@ test("new sponsor inquiries copy KCDP but not KC Digital Drive", () => {
   assert.equal(sent[0].replyTo, "a@kcdp.org");
 });
 
-test("approving a sponsor copies KCDP and KC Digital Drive and marks the row", () => {
-  const { post, sent, sheets, context, select, ui } = load();
-  post(sponsor({ organization: "=Navy" }));
-  select("Sponsorship", 2);
-  context.approveSelectedSponsor();
+const INVOICE = { replies: ["Thursday, November 19", "Event sponsor, $500"] };
 
+test("confirming a sponsor copies KCDP and KC Digital Drive for invoicing and updates Status", () => {
+  const { post, sent, sheets, context, select, ui } = load(INVOICE);
+  post(sponsor({ organization: "=Navy", website: "https://navy.example" }));
+  select("Sponsorship", 2);
+  context.confirmSelectedSponsor();
+
+  assert.deepEqual(ui.prompts, ["Event date", "Sponsorship level"]);
   assert.equal(sent.length, 2);
-  const approval = sent[1];
-  assert.equal(approval.to, "grace@example.com");
-  assert.equal(approval.cc, "a@kcdp.org,b@kcdp.org,aaron@kcdd.org,jim@kcdd.org");
-  assert.equal(approval.replyTo, "a@kcdp.org");
-  assert.match(approval.body, /KC Digital Drive/);
-  assert.match(approval.subject, /Welcome aboard: =Navy/);
-  assert.equal(sheets.Sponsorship.rows[1][1], "Approved 2026-10-14");
+  const invoice = sent[1];
+  assert.equal(invoice.to, "grace@example.com");
+  assert.equal(invoice.cc, "a@kcdp.org,b@kcdp.org,aaron@kcdd.org,jim@kcdd.org");
+  assert.equal(invoice.replyTo, "a@kcdp.org");
+  assert.equal(invoice.subject, "=Navy sponsorship of KCDP (Thursday, November 19): invoicing");
+  assert.match(invoice.body, /KC Digital Drive, who handle invoicing/);
+  assert.match(invoice.body, /- Sponsorship: Event sponsor, \$500/);
+  assert.match(invoice.body, /- Website: https:\/\/navy.example/);
+  assert.equal(sheets.Sponsorship.rows[1][1], "Invoice requested 2026-10-14 \u00b7 Thursday, November 19 \u00b7 Event sponsor, $500");
   assert.match(ui.alerts[0][1], /jim@kcdd.org/);
 });
 
-test("approval does nothing when the organizer answers No", () => {
-  const { post, sent, sheets, context, select } = load({ answer: "NO" });
+test("the sponsorship level is optional", () => {
+  const { post, sent, sheets, context, select } = load({ replies: ["Nov 19", ""] });
   post(sponsor());
   select("Sponsorship", 2);
-  context.approveSelectedSponsor();
-  assert.equal(sent.length, 1);
-  assert.equal(sheets.Sponsorship.rows[1][1], "New");
+  context.confirmSelectedSponsor();
+  assert.doesNotMatch(sent[1].body, /- Sponsorship:/);
+  assert.equal(sheets.Sponsorship.rows[1][1], "Invoice requested 2026-10-14 \u00b7 Nov 19");
 });
 
-test("approval refuses the header row and other tabs", () => {
-  const { post, sent, context, select, ui } = load();
+test("a blank event date is asked again", () => {
+  const { post, sent, context, select, ui } = load({ replies: ["  ", "Nov 19", ""] });
+  post(sponsor());
+  select("Sponsorship", 2);
+  context.confirmSelectedSponsor();
+  assert.deepEqual(ui.prompts, ["Event date", "Event date", "Sponsorship level"]);
+  assert.equal(sent.length, 2);
+});
+
+test("cancelling a prompt or answering No sends nothing", () => {
+  for (const opts of [{ replies: [null] }, { replies: ["Nov 19", null] }, { ...INVOICE, answer: "NO" }]) {
+    const { post, sent, sheets, context, select } = load(opts);
+    post(sponsor());
+    select("Sponsorship", 2);
+    context.confirmSelectedSponsor();
+    assert.equal(sent.length, 1);
+    assert.equal(sheets.Sponsorship.rows[1][1], "New");
+  }
+});
+
+test("confirming refuses the header row and other tabs", () => {
+  const { post, sent, context, select, ui } = load(INVOICE);
   post(sponsor());
   post(speaker());
   select("Sponsorship", 1);
-  context.approveSelectedSponsor();
+  context.confirmSelectedSponsor();
   select("Speakers", 2);
-  context.approveSelectedSponsor();
+  context.confirmSelectedSponsor();
   assert.equal(sent.length, 2);
   assert.match(ui.alerts[0][0], /not the header/);
   assert.match(ui.alerts[1][0], /Sponsorship tab/);
 });
 
-test("re-approving an approved sponsor asks before sending again", () => {
-  const { post, sent, context, select, ui } = load();
+test("confirming twice asks before sending the invoicing email again", () => {
+  const { post, sent, context, select, ui } = load({ replies: ["Nov 19", "", "Nov 19", ""] });
   post(sponsor());
   select("Sponsorship", 2);
-  context.approveSelectedSponsor();
-  context.approveSelectedSponsor();
+  context.confirmSelectedSponsor();
+  context.confirmSelectedSponsor();
   assert.equal(sent.length, 3);
-  assert.match(ui.alerts[2][1], /already marked Approved 2026-10-14/);
+  assert.equal(ui.alerts[2][0], "Already sent");
 });
 
-test("approval without KCDD_EMAILS copies KCDP only and doesn't mention KC Digital Drive", () => {
-  const { post, sent, context, select } = load({ props: { KCDD_EMAILS: "" } });
+test("confirming without KCDD_EMAILS stops and says what to set", () => {
+  const { post, sent, context, select, ui } = load({ ...INVOICE, props: { KCDD_EMAILS: "" } });
   post(sponsor());
   select("Sponsorship", 2);
-  context.approveSelectedSponsor();
-  assert.equal(sent[1].cc, "a@kcdp.org,b@kcdp.org");
-  assert.doesNotMatch(sent[1].body, /Digital Drive/);
+  context.confirmSelectedSponsor();
+  assert.equal(sent.length, 1);
+  assert.match(ui.alerts[0][0], /KCDD_EMAILS/);
 });
 
 test("an address in both groups is copied once", () => {
-  const { post, sent, context, select } = load({ props: { KCDD_EMAILS: "A@kcdp.org, jim@kcdd.org" } });
+  const { post, sent, context, select } = load({ ...INVOICE, props: { KCDD_EMAILS: "A@kcdp.org, jim@kcdd.org" } });
   post(sponsor());
   select("Sponsorship", 2);
-  context.approveSelectedSponsor();
+  context.confirmSelectedSponsor();
   assert.equal(sent[1].cc, "a@kcdp.org,b@kcdp.org,jim@kcdd.org");
 });

@@ -7,21 +7,24 @@
  *
  * Sponsorship runs in two stages:
  *   1. Inquiry: the sponsor gets the sponsorship levels PDF, with the KCDP
- *      organizers (KCDP_EMAILS) copied.
- *   2. Approval: an organizer selects the sponsor's row and chooses
- *      KCDP > Approve selected sponsor. That sends a welcome email copying
- *      the KCDP organizers and KC Digital Drive (KCDD_EMAILS), and marks the
- *      row Approved.
+ *      organizers (KCDP_EMAILS) copied. KCDP reviews and approves the
+ *      sponsor in that email thread and agrees an event date.
+ *   2. Invoicing: an organizer selects the sponsor's row and chooses
+ *      KCDP > Confirm sponsor & request invoice, entering the event date and
+ *      level. That emails the sponsor with KCDP and KC Digital Drive
+ *      (KCDD_EMAILS) copied so KCDD can invoice them, and updates the row's
+ *      Status.
  * Speaker proposals copy the KCDP organizers only.
  *
  * Setup and deployment: docs/forms.md in the website repository.
  *
  * Script properties (Project Settings > Script properties):
  *   KCDP_EMAILS     required  Comma-separated KCDP organizer addresses.
- *                             Copied on every submission and approval; the
- *                             first one is the Reply-To address.
+ *                             Copied on every email; the first one is the
+ *                             Reply-To address.
  *   KCDD_EMAILS     optional  Comma-separated KC Digital Drive addresses.
- *                             Copied only on sponsor approval emails.
+ *                             Copied only on the invoicing email; needed
+ *                             before that menu item will run.
  *   SPONSOR_DOC_ID  optional  Drive file ID of the sponsorship levels
  *                             document (a Google Doc or a PDF). Attached
  *                             to sponsorship emails as a PDF.
@@ -323,21 +326,25 @@ function respond_(viaJs, result) {
 }
 
 // ---------------------------------------------------------------------------
-// Sponsor approval (run from the spreadsheet's KCDP menu)
+// Sponsor invoicing (run from the spreadsheet's KCDP menu)
+//
+// KCDP reviews and approves sponsors in the inquiry email thread. Once a
+// sponsor is approved and their event date is set, an organizer uses this to
+// email the sponsor with KC Digital Drive copied so KCDD can invoice them.
 // ---------------------------------------------------------------------------
 
-var APPROVED_PREFIX = "Approved";
+var INVOICE_PREFIX = "Invoice requested";
 
 /** Adds the KCDP menu whenever an organizer opens the spreadsheet. */
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("KCDP")
-    .addItem("Approve selected sponsor", "approveSelectedSponsor")
+    .addItem("Confirm sponsor & request invoice", "confirmSelectedSponsor")
     .addToUi();
 }
 
-/** Menu action: confirms, then emails the selected sponsor with KCDP and KC Digital Drive copied. */
-function approveSelectedSponsor() {
+/** Menu action: asks for the event date and level, confirms, then sends the invoicing email. */
+function confirmSelectedSponsor() {
   var ui = SpreadsheetApp.getUi();
   var sheet = SpreadsheetApp.getActiveSheet();
   if (sheet.getName() !== FORMS.sponsorship.sheet) {
@@ -351,29 +358,53 @@ function approveSelectedSponsor() {
   }
 
   var config = config_();
+  if (!config.kcdd.length) {
+    ui.alert("Add KC Digital Drive's addresses to the KCDD_EMAILS script property first.");
+    return;
+  }
   var sponsor = readSponsorRow_(sheet, rowIndex);
   if (!sponsor.email) {
     ui.alert("Row " + rowIndex + " has no email address.");
     return;
   }
-  var already = String(sponsor.status).indexOf(APPROVED_PREFIX) === 0;
-  var question =
-    (already ? sponsor.organization + " is already marked " + sponsor.status + ". Send the welcome email again?\n\n" : "") +
-    "Email " + sponsor.name + " <" + sponsor.email + "> at " + sponsor.organization +
-    " to confirm the sponsorship, copying:\n" + approvalCc_(config).join(", ");
-  if (ui.alert("Approve sponsor", question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  if (String(sponsor.status).indexOf(INVOICE_PREFIX) === 0 &&
+      ui.alert("Already sent", sponsor.organization + " is marked “" + sponsor.status +
+        ".” Send the invoicing email again?", ui.ButtonSet.YES_NO) !== ui.Button.YES) {
+    return;
+  }
 
-  approveSponsorRow_(sheet, rowIndex, config);
-  ui.alert("Sent. Row " + rowIndex + " is marked " + sheet.getRange(rowIndex, 2).getValue() + ".");
+  var date = ask_(ui, "Event date", "Which event is " + sponsor.organization + " sponsoring? (for example: Thursday, November 19)", true);
+  if (date === null) return;
+  var level = ask_(ui, "Sponsorship level", "Sponsorship level or amount to invoice (optional; for example: Event sponsor, $500)", false);
+  if (level === null) return;
+
+  var question =
+    "Email " + sponsor.name + " <" + sponsor.email + "> at " + sponsor.organization +
+    " to confirm sponsorship of the " + date + " event" + (level ? " (" + level + ")" : "") +
+    ", copying KC Digital Drive for invoicing:\n" + invoiceCc_(config).join(", ");
+  if (ui.alert("Confirm sponsor & request invoice", question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  confirmSponsorRow_(sheet, rowIndex, config, { date: date, level: level });
+  ui.alert("Sent. Row " + rowIndex + " is marked “" + sheet.getRange(rowIndex, 2).getValue() + ".”");
 }
 
-/** Sends the approval email for one Sponsorship row and updates its Status. */
-function approveSponsorRow_(sheet, rowIndex, config) {
+/** Prompts for a line of text; null if cancelled. Re-asks while a required answer is blank. */
+function ask_(ui, title, prompt, required) {
+  while (true) {
+    var response = ui.prompt(title, prompt, ui.ButtonSet.OK_CANCEL);
+    if (response.getSelectedButton() !== ui.Button.OK) return null;
+    var text = clean_(response.getResponseText(), 200);
+    if (text || !required) return text;
+  }
+}
+
+/** Sends the invoicing email for one Sponsorship row and updates its Status. */
+function confirmSponsorRow_(sheet, rowIndex, config, details) {
   var sponsor = readSponsorRow_(sheet, rowIndex);
-  var message = approvalEmail_(sponsor, config.kcdd.length > 0);
+  var message = invoiceEmail_(sponsor, details);
   MailApp.sendEmail({
     to: sponsor.email,
-    cc: approvalCc_(config).join(","),
+    cc: invoiceCc_(config).join(","),
     replyTo: config.kcdp[0],
     name: SENDER_NAME,
     subject: message.subject,
@@ -381,11 +412,13 @@ function approveSponsorRow_(sheet, rowIndex, config) {
     body: message.text
   });
   var stamp = Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd");
-  sheet.getRange(rowIndex, 2).setValue(APPROVED_PREFIX + " " + stamp);
+  sheet.getRange(rowIndex, 2).setValue(
+    asText_(INVOICE_PREFIX + " " + stamp + " · " + details.date + (details.level ? " · " + details.level : ""))
+  );
 }
 
 /** KCDP organizers plus KC Digital Drive, without duplicates. */
-function approvalCc_(config) {
+function invoiceCc_(config) {
   var seen = {};
   return config.kcdp.concat(config.kcdd).filter(function (address) {
     var key = address.toLowerCase();
@@ -406,20 +439,37 @@ function readSponsorRow_(sheet, rowIndex) {
   return sponsor;
 }
 
-function approvalEmail_(sponsor, withKcdd) {
+function invoiceEmail_(sponsor, details) {
   var paragraphs = [
     "Hi " + firstName_(sponsor.name) + ",",
-    "Great news: we'd love to have " + sponsor.organization + " as a Kansas City Data Professionals sponsor. Thank you for supporting the community.",
-    (withKcdd
-      ? "I've copied the KCDP organizers and our community partners at KC Digital Drive"
-      : "I've copied the KCDP organizers") +
-      " so we can work out next steps together: timing, venue or food logistics, and how we'll recognize your support. Reply all and we'll take it from there."
+    "Thank you for sponsoring Kansas City Data Professionals! " + sponsor.organization +
+      " is confirmed as a sponsor of our " + details.date + " event.",
+    "I've copied our partners at KC Digital Drive, who handle invoicing for KCDP sponsorships. They'll send your invoice and are the best contact for billing questions. Reply all if anything changes on your side."
   ];
+  var summary = [
+    ["Organization", sponsor.organization],
+    ["Contact", sponsor.name + " <" + sponsor.email + ">"],
+    ["Event", details.date],
+    ["Sponsorship", details.level],
+    ["Website", sponsor.website]
+  ].filter(function (row) { return row[1]; });
+
   var html = paragraphs.map(function (p) { return "<p>" + escape_(p) + "</p>"; }).join("") +
-    '<p style="margin-top:24px;color:#4f5d68">Kansas City Data Professionals<br>Connecting Kansas City\u2019s data community.</p>';
+    '<p style="margin-top:24px"><strong>Sponsorship details</strong></p>' +
+    '<table cellpadding="6" style="border-collapse:collapse">' +
+    summary.map(function (row) {
+      return '<tr><td style="vertical-align:top;color:#4f5d68;white-space:nowrap">' + escape_(row[0]) +
+        '</td><td style="vertical-align:top">' + escape_(row[1]) + "</td></tr>";
+    }).join("") +
+    "</table>" +
+    '<p style="margin-top:24px;color:#4f5d68">Kansas City Data Professionals<br>Connecting Kansas City’s data community.</p>';
+  var text = paragraphs.join("\n\n") + "\n\nSponsorship details\n" +
+    summary.map(function (row) { return "- " + row[0] + ": " + row[1]; }).join("\n") +
+    "\n\nKansas City Data Professionals";
+
   return {
-    subject: "Welcome aboard: " + sponsor.organization + " and Kansas City Data Professionals",
+    subject: sponsor.organization + " sponsorship of KCDP (" + details.date + "): invoicing",
     html: html,
-    text: paragraphs.join("\n\n") + "\n\nKansas City Data Professionals"
+    text: text
   };
 }
