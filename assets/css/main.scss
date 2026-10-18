@@ -1023,6 +1023,8 @@ a:hover { color: var(--navy-900); text-decoration-thickness: 2px; }
 .choice:hover { border-color: var(--navy-200); }
 .choice input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--navy-700); }
 .choice:has(input:checked) { border-color: var(--navy-700); background: var(--navy-100); }
+.choice--single { margin-bottom: 1.25rem; }
+.form__group legend .field__req { letter-spacing: 0.06em; }
 
 .form__privacy { margin: 0.5rem 0 1.25rem; font-size: 0.8125rem; color: var(--text-muted); }
 

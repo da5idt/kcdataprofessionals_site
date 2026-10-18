@@ -30,8 +30,9 @@
  *                             to sponsorship emails as a PDF.
  *   SPONSOR_LEVELS  optional  Choices for the invoicing dropdown, separated
  *                             by semicolons, e.g.
- *                             Bronze $250; Silver $500; Gold $1,000
- *                             Defaults to Bronze; Silver; Gold.
+ *                             Bronze (1 event) $X; Silver (5 events) $Y;
+ *                             Gold (10 events) $Z
+ *                             Defaults to the three levels without prices.
  *   SITE_URL        optional  Defaults to https://kcdataprofessionals.org
  *   SLACK_SPONSORSHIP_WEBHOOK_URL
  *                   optional  Slack incoming webhook for the sponsorship
@@ -203,7 +204,7 @@ function levels_(value) {
     .split(/[;\n]/)
     .map(function (level) { return level.trim(); })
     .filter(Boolean);
-  return levels.length ? levels : ["Bronze", "Silver", "Gold"];
+  return levels.length ? levels : ["Bronze (1 event)", "Silver (5 events)", "Gold (10 events)"];
 }
 
 /** Splits a comma-separated property into trimmed, non-empty addresses. */
@@ -460,7 +461,7 @@ function invoiceDialogHtml_(sponsor, rowIndex, config) {
       escape_(sponsor.name) + " &lt;" + escape_(sponsor.email) + "&gt;</p>",
     already,
     '<form id="f">',
-    '<label for="date">Event date</label><input type="date" id="date" required>',
+    '<label for="date">First sponsored event</label><input type="date" id="date" required>',
     '<label for="level">Sponsorship level</label>',
     '<select id="level" required><option value="">Choose a level…</option>' + options + "</select>",
     '<p class="cc">The sponsor is emailed with these people copied, so KC Digital Drive can send the invoice:<br>' +
@@ -498,7 +499,7 @@ function confirmSponsorRow_(sheet, rowIndex, config, details) {
   );
   postToSlack_(FORMS.sponsorship.slackProperty,
     ":receipt: *Invoice requested:* " + slackEscape_(sponsor.organization) +
-    " for the " + slackEscape_(details.date) + " event" +
+    " starting with the " + slackEscape_(details.date) + " event" +
     (details.level ? " (" + slackEscape_(details.level) + ")" : "") +
     ". Sponsor emailed with KC Digital Drive copied.\n" + sheetLink_(sheet));
 }
@@ -529,13 +530,13 @@ function invoiceEmail_(sponsor, details) {
   var paragraphs = [
     "Hi " + firstName_(sponsor.name) + ",",
     "Thank you for sponsoring Kansas City Data Professionals! " + sponsor.organization +
-      " is confirmed as a sponsor of our " + details.date + " event.",
+      " is confirmed as a KCDP sponsor, starting with our " + details.date + " event.",
     "I've copied our partners at KC Digital Drive, who handle invoicing for KCDP sponsorships. They'll send your invoice and are the best contact for billing questions. Reply all if anything changes on your side."
   ];
   var summary = [
     ["Organization", sponsor.organization],
     ["Contact", sponsor.name + " <" + sponsor.email + ">"],
-    ["Event", details.date],
+    ["First event", details.date],
     ["Sponsorship", details.level],
     ["Website", sponsor.website]
   ].filter(function (row) { return row[1]; });

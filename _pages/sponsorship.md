@@ -27,7 +27,6 @@ classes:
 
 We welcome sponsorships that help us:
 
-- Provide high-quality venues
 - Offer food and refreshments
 - Keep events accessible
 - Grow the regional data ecosystem
@@ -45,22 +44,26 @@ KCDP is built on a simple foundation:
 
 We believe long-term trust is more valuable than short-term funding.
 
-## Ways to support
+## Sponsorship levels
 
 <div class="support-options">
   <div class="support-option">
-    <h3>Venue hosts</h3>
-    <p>Provide space and hospitality for an event.</p>
+    <h3>Bronze</h3>
+    <p>Sponsor <strong>1 event</strong>.</p>
   </div>
   <div class="support-option">
-    <h3>Event sponsors</h3>
-    <p>Support food, beverages, or event logistics.</p>
+    <h3>Silver</h3>
+    <p>Sponsor <strong>5 events</strong>.</p>
   </div>
   <div class="support-option">
-    <h3>Community partners</h3>
-    <p>Collaborate on strengthening the Kansas City data ecosystem.</p>
+    <h3>Gold</h3>
+    <p>Sponsor <strong>10 events</strong>.</p>
   </div>
 </div>
+
+Request the levels below and we'll email you the details and pricing right away.
+
+**Have a space?** We already have a dedicated venue, but we're always happy to hear from organizations that would like to host a meetup. Let us know in the form.
 
 {% include form-open.html name="sponsorship" title="Start a sponsorship conversation" %}
   <p class="form__intro">Tell us a little about your organization. We'll email you our sponsorship levels right away and follow up to talk through the details.</p>
@@ -93,13 +96,14 @@ We believe long-term trust is more valuable than short-term funding.
   </fieldset>
 
   <fieldset class="form__group">
-    <legend>Interested in</legend>
+    <legend>Sponsorship level <span class="field__req">required</span></legend>
     <div class="choices">
-      <label class="choice"><input type="checkbox" name="interest" value="Venue host"> Hosting an event</label>
-      <label class="choice"><input type="checkbox" name="interest" value="Event sponsor"> Sponsoring food or logistics</label>
-      <label class="choice"><input type="checkbox" name="interest" value="Community partner"> Community partnership</label>
-      <label class="choice"><input type="checkbox" name="interest" value="Not sure yet"> Not sure yet</label>
+      <label class="choice"><input type="radio" name="interest" value="Bronze (1 event)" required> <span><strong>Bronze</strong>: 1 event</span></label>
+      <label class="choice"><input type="radio" name="interest" value="Silver (5 events)"> <span><strong>Silver</strong>: 5 events</span></label>
+      <label class="choice"><input type="radio" name="interest" value="Gold (10 events)"> <span><strong>Gold</strong>: 10 events</span></label>
+      <label class="choice"><input type="radio" name="interest" value="Not sure yet"> <span>Not sure yet</span></label>
     </div>
+    <label class="choice choice--single"><input type="checkbox" name="interest" value="Could host an event"> <span>We could also host an event at our space</span></label>
     <label class="field">
       <span class="field__label">Anything we should know?</span>
       <span class="field__hint">Timing, budget, audiences you want to support, or questions for us.</span>

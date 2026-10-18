@@ -145,11 +145,11 @@ test("speaker submission is stored and emailed to the speaker with KCDP copied, 
 
 test("sponsorship email attaches the levels document as a PDF and joins checkbox answers", () => {
   const { post, sent, sheets } = load({ props: { SPONSOR_DOC_ID: "doc123" } });
-  const result = post(sponsor(), { interest: ["Venue host", "Event sponsor"] });
+  const result = post(sponsor(), { interest: ["Gold (10 events)", "Could host an event"] });
   assert.deepEqual(result, { ok: true });
   assert.equal(sent[0].attachments[0].id, "doc123");
   assert.equal(sent[0].attachments[0].mime, "application/pdf");
-  assert.equal(sheets.Sponsorship.rows[1][7], "Venue host, Event sponsor");
+  assert.equal(sheets.Sponsorship.rows[1][7], "Gold (10 events), Could host an event");
   assert.match(sent[0].htmlBody, /attached/);
 });
 
@@ -233,7 +233,7 @@ test("new sponsor inquiries copy KCDP but not KC Digital Drive", () => {
   assert.equal(sent[0].replyTo, "a@kcdp.org");
 });
 
-const LEVELS = { SPONSOR_LEVELS: "Bronze $250; Silver $500; Gold $1,000" };
+const LEVELS = { SPONSOR_LEVELS: "Bronze $250; Silver $500; Gold $1,000" }; // sample prices only
 
 test("the invoicing menu opens a dialog with a date picker, the levels and the CC list", () => {
   const { post, context, select, ui } = load({ props: LEVELS });
@@ -252,12 +252,12 @@ test("the invoicing menu opens a dialog with a date picker, the levels and the C
   assert.match(html, /submitInvoiceRequest\(2,/);
 });
 
-test("levels default to Bronze, Silver and Gold", () => {
+test("levels default to Bronze, Silver and Gold with their event counts", () => {
   const { post, context, select, ui } = load();
   post(sponsor());
   select("Sponsorship", 2);
   context.confirmSelectedSponsor();
-  assert.match(ui.dialogs[0].html, /<option>Bronze<\/option><option>Silver<\/option><option>Gold<\/option>/);
+  assert.match(ui.dialogs[0].html, /<option>Bronze \(1 event\)<\/option><option>Silver \(5 events\)<\/option><option>Gold \(10 events\)<\/option>/);
 });
 
 test("sending from the dialog emails KCDP and KC Digital Drive and updates Status", () => {
@@ -272,7 +272,7 @@ test("sending from the dialog emails KCDP and KC Digital Drive and updates Statu
   assert.equal(invoice.replyTo, "a@kcdp.org");
   assert.equal(invoice.subject, "=Navy sponsorship of KCDP (Thursday, November 19, 2026): invoicing");
   assert.match(invoice.body, /KC Digital Drive, who handle invoicing/);
-  assert.match(invoice.body, /- Event: Thursday, November 19, 2026/);
+  assert.match(invoice.body, /- First event: Thursday, November 19, 2026/);
   assert.match(invoice.body, /- Sponsorship: Silver \$500/);
   assert.match(invoice.body, /- Website: https:\/\/navy.example/);
   const expected = "Invoice requested 2026-10-14 · Thursday, November 19, 2026 · Silver $500";
@@ -327,7 +327,7 @@ test("invoicing without KCDD_EMAILS stops and says what to set", () => {
 test("an address in both groups is copied once", () => {
   const { post, sent, context } = load({ props: { KCDD_EMAILS: "A@kcdp.org, jim@kcdd.org" } });
   post(sponsor());
-  context.submitInvoiceRequest(2, "2026-11-19", "Gold");
+  context.submitInvoiceRequest(2, "2026-11-19", "Gold (10 events)");
   assert.equal(sent[1].cc, "a@kcdp.org,b@kcdp.org,jim@kcdd.org");
 });
 
@@ -338,7 +338,7 @@ const SLACK = {
 
 test("each form posts to its own Slack channel", () => {
   const { post, posts } = load({ props: SLACK });
-  post(sponsor({ role: "CTO", message: "Line one\nLine two" }), { interest: ["Venue host"] });
+  post(sponsor({ role: "CTO", message: "Line one\nLine two" }), { interest: ["Silver (5 events)", "Could host an event"] });
   post(speaker({ format: "Lightning talk" }));
 
   assert.equal(posts.length, 2);
@@ -347,7 +347,7 @@ test("each form posts to its own Slack channel", () => {
   assert.equal(posts[0].body.text, [
     ":handshake: *New sponsor inquiry:* Navy",
     "Grace Hopper (grace@example.com) \u00b7 CTO",
-    "Interested in: Venue host",
+    "Interested in: Silver (5 events), Could host an event",
     "> Line one\n> Line two",
     "<https://docs.google.com/spreadsheets/d/SHEET/edit#gid=111|Open the Sponsorship tab>",
   ].join("\n"));
@@ -364,7 +364,7 @@ test("the invoicing step posts to the sponsorship channel", () => {
   context.submitInvoiceRequest(2, "2026-11-19", "Silver $500");
   assert.equal(posts.length, 2);
   assert.equal(posts[1].url, SLACK.SLACK_SPONSORSHIP_WEBHOOK_URL);
-  assert.match(posts[1].body.text, /^:receipt: \*Invoice requested:\* Navy for the Thursday, November 19, 2026 event \(Silver \$500\)/);
+  assert.match(posts[1].body.text, /^:receipt: \*Invoice requested:\* Navy starting with the Thursday, November 19, 2026 event \(Silver \$500\)/);
 });
 
 test("without webhook properties nothing is posted", () => {
