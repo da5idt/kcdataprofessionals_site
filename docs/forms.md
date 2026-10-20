@@ -1,5 +1,7 @@
 # Sponsorship and speaker forms
 
+The same endpoint also records newsletter readers: the short name, company and title form in front of each [Data Profession Weekly](newsletter.md) issue. Those rows are only saved to the `Newsletter readers` tab; no email or Slack post is sent and they don't count toward `DAILY_LIMIT`.
+
 The forms on `/sponsorship` and `/speak` work without moving the site off GitHub Pages and cost nothing to run.
 
 ```
@@ -20,7 +22,7 @@ Confirm sponsor & request invoice (spreadsheet's KCDP menu)
            so KCDD can invoice; updates the row's Status
 ```
 
-- **Storage:** a Google Sheet with one tab per form (`Sponsorship`, `Speakers`). Each row has a `Status` column (starts as `New`) and a blank `Team notes` column for tracking follow-up.
+- **Storage:** a Google Sheet with one tab per form (`Sponsorship`, `Speakers`, `Newsletter readers`). Each row has a `Status` column (starts as `New`) and a blank `Team notes` column for tracking follow-up.
 - **Email:** sent as "Kansas City Data Professionals". The submitter is on To and the people below are on CC. Reply-To is the first `KCDP_EMAILS` address, so "Reply all" keeps everyone in the thread.
   - **Speaker proposals and new sponsor inquiries** copy the KCDP organizers (`KCDP_EMAILS`).
   - **Invoicing** is the only email that copies KC Digital Drive (`KCDD_EMAILS`). KCDP reviews and approves each sponsor in the inquiry email thread and agrees an event date. Then, in the sheet:

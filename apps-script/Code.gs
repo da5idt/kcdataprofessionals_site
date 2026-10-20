@@ -15,6 +15,8 @@
  *      (KCDD_EMAILS) copied so KCDD can invoice them, and updates the row's
  *      Status.
  * Speaker proposals copy the KCDP organizers only.
+ * Newsletter readers (the short form in front of each Data Profession Weekly
+ * issue) are only saved to the "Newsletter readers" tab: no email, no Slack.
  *
  * Setup and deployment: docs/forms.md in the website repository.
  *
@@ -76,6 +78,16 @@ var FORMS = {
       { name: "experience", label: "Speaking experience", max: 2000 },
       { name: "notes", label: "Notes", max: 2000 }
     ]
+  },
+  newsletter: {
+    sheet: "Newsletter readers",
+    saveOnly: true,
+    fields: [
+      { name: "name", label: "Name", required: true, max: 120 },
+      { name: "company", label: "Company", required: true, max: 200 },
+      { name: "title", label: "Title", required: true, max: 200 },
+      { name: "issue", label: "Issue", max: 200 }
+    ]
   }
 };
 
@@ -116,6 +128,8 @@ function handleSubmission_(params, multiParams) {
   var problem = validate_(form, values);
   if (problem) return { ok: false, error: problem };
 
+  if (form.saveOnly) return saveOnly_(form, values);
+
   var config = config_();
   var email = values.email.toLowerCase();
 
@@ -147,6 +161,19 @@ function handleSubmission_(params, multiParams) {
     emailed = false;
   }
   postToSlack_(form.slackProperty, submissionSlackText_(params.form, values, row.sheet, emailed));
+  return { ok: true };
+}
+
+/** Forms that only record a row: no email, so no email quota or repeat check. */
+function saveOnly_(form, values) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var row = appendRow_(form, values);
+    row.sheet.getRange(row.index, 2).setValue("New");
+  } finally {
+    lock.releaseLock();
+  }
   return { ok: true };
 }
 

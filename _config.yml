@@ -42,6 +42,16 @@ footer:
 
 
 
+# Collections
+# Data Profession Weekly issues live in _newsletter/, one file per issue.
+# See docs/newsletter.md for the file format.
+collections:
+  newsletter:
+    output: true
+    permalink: /newsletter/:name/
+
+
+
 # Reading Files
 include:
   - .htaccess
@@ -137,3 +147,8 @@ defaults:
       type: "pages"
     values:
       layout: "page"
+  - scope:
+      path: ""
+      type: "newsletter"
+    values:
+      layout: "newsletter"
