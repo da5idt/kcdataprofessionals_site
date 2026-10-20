@@ -1,0 +1,155 @@
+---
+layout: default
+---
+
+{% assign issue_date = page.date | date: "%B %-d, %Y" %}
+<header class="page-header">
+  <div class="container">
+    <p class="eyebrow">Data Profession Weekly · {{ issue_date }}</p>
+    <h1>{{ page.title | escape }}</h1>
+    {% if page.intro %}<p class="page-header__lead">{{ page.intro | escape }}</p>{% endif %}
+  </div>
+</header>
+
+<article class="page-body container newsletter">
+  {% comment %}
+    Soft gate: readers give their name, email, company and title once, then every
+    issue opens. GitHub Pages is static, so the issue is still in the page
+    source; this only asks politely. Without JavaScript the issue just shows.
+  {% endcomment %}
+  <script>
+    try { if (localStorage.getItem("kcdp-newsletter-reader")) document.documentElement.classList.add("nl-unlocked"); } catch (e) {}
+  </script>
+  {% if site.forms.endpoint != "" %}
+  <form class="form nl-gate" data-nl-gate method="post" action="{{ site.forms.endpoint }}" accept-charset="UTF-8" aria-labelledby="nl-gate-title">
+    <h2 id="nl-gate-title">Read this week's issue</h2>
+    <p class="form__intro">Tell us who you are once and every issue opens for you on this device.</p>
+    <input type="hidden" name="form" value="newsletter">
+    <input type="hidden" name="issue" value="{{ page.date | date: '%Y-%m-%d' }}">
+    <div class="form__trap" aria-hidden="true">
+      <label>Leave this field empty <input type="text" name="_company_url" tabindex="-1" autocomplete="off"></label>
+    </div>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Name</span>
+        <input type="text" name="name" autocomplete="name" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input type="email" name="email" autocomplete="email" required maxlength="200">
+      </label>
+    </div>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Company</span>
+        <input type="text" name="company" autocomplete="organization" required maxlength="200">
+      </label>
+      <label class="field">
+        <span class="field__label">Title</span>
+        <input type="text" name="title" autocomplete="organization-title" required maxlength="200">
+      </label>
+    </div>
+    <label class="choice choice--single"><input type="checkbox" name="meetup_invites" value="Yes" checked> <span>Email me invitations to upcoming KCDP meetups</span></label>
+    <label class="choice choice--single"><input type="checkbox" name="share_with_sponsors" value="Yes"> <span>KCDP may share my name, email, company and title with its sponsors</span></label>
+    <p class="form__privacy">We keep this in a private KCDP spreadsheet to see who reads the newsletter and, if you tick the boxes, to invite you to meetups and share your details with our sponsors. We share it with no one else, and you can ask us to stop at any time.</p>
+    <div class="form__footer">
+      <button class="btn btn--solid" type="submit">Read the issue</button>
+      <p class="form__status" role="status" aria-live="polite" data-nl-status></p>
+    </div>
+  </form>
+  {% endif %}
+
+  <div class="nl-gated" data-nl-gated>
+  {% if page.top_stories and page.top_stories.size > 0 %}
+  <section class="nl-top" aria-labelledby="top-stories">
+    <h2 id="top-stories" class="nl-section__title">Top 3 this week</h2>
+    <div class="nl-top__grid">
+      {% for item in page.top_stories %}{% include newsletter-item.html item=item why=true %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.sections and page.sections.size > 0 %}
+  <nav class="nl-toc" aria-label="Sections in this issue">
+    <ul>
+      {% for section in page.sections %}<li><a href="#section-{{ section.name | slugify }}">{{ section.name | escape }}</a></li>{% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% for section in page.sections %}
+  <section class="nl-section" id="section-{{ section.name | slugify }}">
+    <h2 class="nl-section__title">{{ section.name | escape }}</h2>
+    {% if section.items and section.items.size > 0 %}
+      {% for item in section.items %}{% include newsletter-item.html item=item %}{% endfor %}
+    {% else %}
+      <p class="nl-section__quiet">Quiet week here.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  {% if page.talking_points and page.talking_points.size > 0 %}
+  <aside class="callout nl-talk">
+    <p class="eyebrow eyebrow--light">Worth talking about</p>
+    <ul>
+      {% for point in page.talking_points %}<li>{{ point | escape }}</li>{% endfor %}
+    </ul>
+    <p>Have a take on one of these, or something you have built? Bring it to a meetup.</p>
+    <a class="btn btn--solid" href="{{ '/speak' | relative_url }}">Propose a talk</a>
+  </aside>
+  {% endif %}
+
+  <footer class="nl-footer">
+    <p>Curated for the Kansas City Data Professionals community. Compiled with help from Claude; every story links to its source.</p>
+    <p><a class="link-arrow" href="{{ '/newsletter/' | relative_url }}">All issues</a></p>
+  </footer>
+  </div>
+</article>
+
+<script>
+  (function () {
+    var form = document.querySelector("[data-nl-gate]");
+    if (!form) return;
+    var loadedAt = Date.now();
+    var unlock = function () {
+      try { localStorage.setItem("kcdp-newsletter-reader", "1"); } catch (e) {}
+      document.documentElement.classList.add("nl-unlocked");
+      window.scrollTo(0, 0);
+    };
+    var status = form.querySelector("[data-nl-status]");
+    var button = form.querySelector("button[type=submit]");
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      button.disabled = true;
+      status.className = "form__status";
+      status.textContent = "Opening…";
+      var data = new URLSearchParams(new FormData(form));
+      data.append("_js", "1");
+      data.append("_elapsed", String(Date.now() - loadedAt));
+      // A reader is never locked out by a network or script problem: the
+      // issue opens if the endpoint fails or is slow. Only a validation
+      // message from the script (e.g. a blank field) asks them to fix it.
+      var settled = false;
+      var finish = function () { if (!settled) { settled = true; unlock(); } };
+      var timer = setTimeout(finish, 5000);
+      fetch(form.action, { method: "POST", body: data })
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+          if (settled) return;
+          // "Company is required.", a bad email: anything else (an old deploy that
+          // doesn't know this form, the daily cap) still opens the issue.
+          if (result && result.ok === false && / is required\.$|valid email/.test(result.error || "")) {
+            clearTimeout(timer);
+            settled = true;
+            button.disabled = false;
+            status.className = "form__status is-error";
+            status.textContent = result.error;
+            return;
+          }
+          finish();
+        })
+        .catch(finish);
+    });
+  })();
+</script>

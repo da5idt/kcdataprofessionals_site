@@ -407,3 +407,47 @@ test("the daily counter keeps only today's count property", () => {
   assert.equal(properties["count:2026-10-14"], "2");
   assert.equal(properties.KCDP_EMAILS, "a@kcdp.org, b@kcdp.org");
 });
+
+test("newsletter readers are saved without email, Slack or the form daily limit", () => {
+  const { post, sent, posts, sheets } = load({
+    props: { DAILY_LIMIT: "1", SLACK_SPEAKERS_WEBHOOK_URL: "https://hooks.slack.com/x" },
+  });
+  const reader = (extra = {}) => ({
+    form: "newsletter", _js: "1", _elapsed: "9000",
+    name: "Ada Lovelace", email: "ada@example.com", company: "Analytical Engines", meetup_invites: "Yes", title: "Data Engineer", issue: "2026-10-26", ...extra,
+  });
+  assert.deepEqual(post(reader()), { ok: true });
+  assert.deepEqual(post(reader()), { ok: true });
+
+  const rows = sheets["Newsletter readers"].rows;
+  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Email", "Company", "Title", "Meetup invites", "Share with sponsors", "Issue", "Team notes"]);
+  assert.equal(rows[1][1], "New");
+  assert.equal(rows[1][3], "ada@example.com");
+  assert.equal(rows[1][5], "Data Engineer");
+  assert.equal(rows[1][6], "Yes");
+  assert.equal(rows[1][7], "No");
+  assert.equal(sent.length, 0);
+  assert.equal(posts.length, 0);
+
+  post(reader({ meetup_invites: undefined }));
+  assert.equal(rows.at(-1)[6], "No");
+  assert.deepEqual(post(reader({ company: "" })), { ok: false, error: "Company is required." });
+  assert.deepEqual(post(reader({ email: "not-an-email" })), { ok: false, error: "Please enter a valid email address." });
+});
+
+test("newsletter readers have their own daily cap and a shorter fill timer", () => {
+  const { post, sheets, properties } = load({ props: { READER_DAILY_LIMIT: "1" } });
+  const reader = (extra = {}) => ({
+    form: "newsletter", _js: "1", _elapsed: "1500",
+    name: "Ada", email: "ada@example.com", company: "Acme", title: "Engineer", ...extra,
+  });
+  assert.deepEqual(post(reader()), { ok: true });
+  assert.equal(post(reader()).ok, false);
+  assert.equal(sheets["Newsletter readers"].rows.length, 2);
+  assert.equal(properties["readers:2026-10-14"], "1");
+
+  assert.deepEqual(post(reader({ _elapsed: "500" })), { ok: true });
+  assert.equal(sheets["Newsletter readers"].rows.length, 2);
+  assert.deepEqual(post(speaker({ _elapsed: "1500" })), { ok: true });
+  assert.equal(sheets.Speakers, undefined);
+});

@@ -1,0 +1,31 @@
+---
+layout: page
+title: Data Profession Weekly
+eyebrow: Newsletter
+lead: "A weekly roundup of what changed across the data profession, from engineering and streaming to governance, delivery and AI. Curated for the KCDP community and published every Monday."
+permalink: /newsletter/
+classes:
+  - newsletter-page
+---
+
+{% assign issues = site.newsletter | sort: "date" | reverse %}
+{% if issues.size > 0 %}
+{% assign latest = issues.first %}
+<div class="nl-latest">
+  <p class="eyebrow">Latest issue · {{ latest.date | date: "%B %-d, %Y" }}</p>
+  <h2><a href="{{ latest.url | relative_url }}">{{ latest.title | escape }}</a></h2>
+  {% if latest.intro %}<p>{{ latest.intro | escape }}</p>{% endif %}
+  <a class="btn btn--solid" href="{{ latest.url | relative_url }}">Read this week's issue</a>
+</div>
+
+{% if issues.size > 1 %}
+<h2>Past issues</h2>
+<ul class="nl-archive">
+  {% for issue in issues offset: 1 %}
+  <li><a href="{{ issue.url | relative_url }}"><span class="nl-archive__date">{{ issue.date | date: "%b %-d, %Y" }}</span> {{ issue.title | escape }}</a></li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% else %}
+<p>The first issue is on its way. Check back Monday.</p>
+{% endif %}

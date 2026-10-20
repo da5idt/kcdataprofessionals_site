@@ -15,6 +15,8 @@
  *      (KCDD_EMAILS) copied so KCDD can invoice them, and updates the row's
  *      Status.
  * Speaker proposals copy the KCDP organizers only.
+ * Newsletter readers (the short form in front of each Data Profession Weekly
+ * issue: name, email, company, title) are only saved to the "Newsletter readers" tab: no email, no Slack.
  *
  * Setup and deployment: docs/forms.md in the website repository.
  *
@@ -40,6 +42,9 @@
  *   SLACK_SPEAKERS_WEBHOOK_URL
  *                   optional  Slack incoming webhook for the speakers
  *                             channel: new talk proposals.
+ *   READER_DAILY_LIMIT
+ *                   optional  Most newsletter reader rows saved per day.
+ *                             Defaults to 500.
  *   DAILY_LIMIT     optional  Most submissions accepted per day across both
  *                             forms. Defaults to 20. Each email counts once
  *                             per recipient (submitter plus every CC)
@@ -76,6 +81,20 @@ var FORMS = {
       { name: "experience", label: "Speaking experience", max: 2000 },
       { name: "notes", label: "Notes", max: 2000 }
     ]
+  },
+  newsletter: {
+    sheet: "Newsletter readers",
+    saveOnly: true,
+    minFillMs: 1000,   // three short fields that browsers autofill
+    fields: [
+      { name: "name", label: "Name", required: true, max: 120 },
+      { name: "email", label: "Email", required: true, max: 200, type: "email" },
+      { name: "company", label: "Company", required: true, max: 200 },
+      { name: "title", label: "Title", required: true, max: 200 },
+      { name: "meetup_invites", label: "Meetup invites", max: 10, checkbox: true },
+      { name: "share_with_sponsors", label: "Share with sponsors", max: 10, checkbox: true },
+      { name: "issue", label: "Issue", max: 200 }
+    ]
   }
 };
 
@@ -109,12 +128,14 @@ function handleSubmission_(params, multiParams) {
   if (params._company_url) return { ok: true };
   if (params._js === "1") {
     var elapsed = Number(params._elapsed);
-    if (!(elapsed >= MIN_FILL_MS)) return { ok: true };
+    if (!(elapsed >= (form.minFillMs || MIN_FILL_MS))) return { ok: true };
   }
 
   var values = readValues_(form, params, multiParams);
   var problem = validate_(form, values);
   if (problem) return { ok: false, error: problem };
+
+  if (form.saveOnly) return saveOnly_(form, values);
 
   var config = config_();
   var email = values.email.toLowerCase();
@@ -150,10 +171,30 @@ function handleSubmission_(params, multiParams) {
   return { ok: true };
 }
 
+/**
+ * Forms that only record a row. No email is sent, so there is no repeat
+ * check; a separate daily cap keeps scripted posts from flooding the sheet.
+ */
+function saveOnly_(form, values) {
+  var limit = Number(PropertiesService.getScriptProperties().getProperty("READER_DAILY_LIMIT")) || 500;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (!takeDailySlot_(limit, "readers:")) {
+      return { ok: false, error: "We've had a lot of readers today. Please try again tomorrow." };
+    }
+    appendRow_(form, values, "New");
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
+}
+
 function readValues_(form, params, multiParams) {
   var values = {};
   form.fields.forEach(function (field) {
     var raw = field.multiple ? (multiParams[field.name] || []).join(", ") : params[field.name];
+    if (field.checkbox) raw = raw ? "Yes" : "No";   // unticked boxes aren't sent
     values[field.name] = clean_(raw, field.max);
   });
   return values;
@@ -216,17 +257,19 @@ function addresses_(value) {
 }
 
 /**
- * Counts today's submissions in a "count:<date>" script property; false once
- * the limit is reached. Earlier days' counters are removed. Call under the lock.
+ * Counts today's submissions in a "<prefix><date>" script property (prefix
+ * defaults to "count:"); false once the limit is reached. Earlier days'
+ * counters with the same prefix are removed. Call under the lock.
  */
-function takeDailySlot_(limit) {
+function takeDailySlot_(limit, prefix) {
+  prefix = prefix || "count:";
   var props = PropertiesService.getScriptProperties();
-  var key = "count:" + Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd");
+  var key = prefix + Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd");
   var count = Number(props.getProperty(key)) || 0;
   if (count >= limit) return false;
   if (count === 0) {
     props.getKeys().forEach(function (other) {
-      if (other.indexOf("count:") === 0 && other !== key) props.deleteProperty(other);
+      if (other.indexOf(prefix) === 0 && other !== key) props.deleteProperty(other);
     });
   }
   props.setProperty(key, String(count + 1));
@@ -234,7 +277,7 @@ function takeDailySlot_(limit) {
 }
 
 /** Appends a row, creating the tab and its header the first time. */
-function appendRow_(form, values) {
+function appendRow_(form, values, status) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = spreadsheet.getSheetByName(form.sheet) || spreadsheet.insertSheet(form.sheet);
   if (sheet.getLastRow() === 0) {
@@ -245,7 +288,7 @@ function appendRow_(form, values) {
     sheet.setFrozenRows(1);
     sheet.getRange(1, 1, 1, header.length).setFontWeight("bold");
   }
-  var row = [new Date(), "Sending email"]
+  var row = [new Date(), status || "Sending email"]
     .concat(form.fields.map(function (field) { return asText_(values[field.name]); }))
     .concat([""]);
   sheet.appendRow(row);

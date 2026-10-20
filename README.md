@@ -49,6 +49,7 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - Site-wide settings (title, URL, logo, footer metadata): `_config.yml`
 - Layout wrappers: `_layouts/default.html`, `_layouts/page.html`
 - Next event card and hero: `_data/next_event.yml` (update it with `scripts/update_next_event.py`) and `_includes/page__hero.html`
+- Weekly newsletter issues: `_newsletter/` (format in [docs/newsletter.md](docs/newsletter.md))
 - Styling: `assets/css/main.scss` (colours and fonts are CSS variables at the top)
 
 ## Contributor docs
@@ -60,3 +61,4 @@ This repo includes `docker-compose.yml` with a `bretfisher/jekyll-serve` service
 - [Architecture](docs/architecture.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Sponsorship and speaker forms](docs/forms.md)
+- [Newsletter](docs/newsletter.md)

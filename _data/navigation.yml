@@ -11,6 +11,8 @@ main:
     url: /speak
   - title: "Sponsorship"
     url: /sponsorship
+  - title: "Newsletter"
+    url: /newsletter/
   - title: "Next event"
     url: /#events
     button: true
