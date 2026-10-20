@@ -414,27 +414,29 @@ test("newsletter readers are saved without email, Slack or the form daily limit"
   });
   const reader = (extra = {}) => ({
     form: "newsletter", _js: "1", _elapsed: "9000",
-    name: "Ada Lovelace", company: "Analytical Engines", title: "Data Engineer", issue: "2026-10-26", ...extra,
+    name: "Ada Lovelace", email: "ada@example.com", company: "Analytical Engines", title: "Data Engineer", issue: "2026-10-26", ...extra,
   });
   assert.deepEqual(post(reader()), { ok: true });
   assert.deepEqual(post(reader()), { ok: true });
 
   const rows = sheets["Newsletter readers"].rows;
-  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Company", "Title", "Issue", "Team notes"]);
+  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Email", "Company", "Title", "Issue", "Team notes"]);
   assert.equal(rows.length, 3);
   assert.equal(rows[1][1], "New");
-  assert.equal(rows[1][4], "Data Engineer");
+  assert.equal(rows[1][3], "ada@example.com");
+  assert.equal(rows[1][5], "Data Engineer");
   assert.equal(sent.length, 0);
   assert.equal(posts.length, 0);
 
   assert.deepEqual(post(reader({ company: "" })), { ok: false, error: "Company is required." });
+  assert.deepEqual(post(reader({ email: "not-an-email" })), { ok: false, error: "Please enter a valid email address." });
 });
 
 test("newsletter readers have their own daily cap and a shorter fill timer", () => {
   const { post, sheets, properties } = load({ props: { READER_DAILY_LIMIT: "1" } });
   const reader = (extra = {}) => ({
     form: "newsletter", _js: "1", _elapsed: "1500",
-    name: "Ada", company: "Acme", title: "Engineer", ...extra,
+    name: "Ada", email: "ada@example.com", company: "Acme", title: "Engineer", ...extra,
   });
   assert.deepEqual(post(reader()), { ok: true });
   assert.equal(post(reader()).ok, false);

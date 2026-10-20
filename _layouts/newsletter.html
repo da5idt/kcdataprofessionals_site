@@ -13,7 +13,7 @@ layout: default
 
 <article class="page-body container newsletter">
   {% comment %}
-    Soft gate: readers give their name, company and title once, then every
+    Soft gate: readers give their name, email, company and title once, then every
     issue opens. GitHub Pages is static, so the issue is still in the page
     source; this only asks politely. Without JavaScript the issue just shows.
   {% endcomment %}
@@ -29,10 +29,16 @@ layout: default
     <div class="form__trap" aria-hidden="true">
       <label>Leave this field empty <input type="text" name="_company_url" tabindex="-1" autocomplete="off"></label>
     </div>
-    <label class="field">
-      <span class="field__label">Name</span>
-      <input type="text" name="name" autocomplete="name" required maxlength="120">
-    </label>
+    <div class="form__row">
+      <label class="field">
+        <span class="field__label">Name</span>
+        <input type="text" name="name" autocomplete="name" required maxlength="120">
+      </label>
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input type="email" name="email" autocomplete="email" required maxlength="200">
+      </label>
+    </div>
     <div class="form__row">
       <label class="field">
         <span class="field__label">Company</span>
@@ -43,7 +49,7 @@ layout: default
         <input type="text" name="title" autocomplete="organization-title" required maxlength="200">
       </label>
     </div>
-    <p class="form__privacy">We keep this in a private KCDP spreadsheet to understand who reads the newsletter. We don't share it or add you to a mailing list.</p>
+    <p class="form__privacy">We keep this in a private KCDP spreadsheet to understand who reads the newsletter. We don't share it, and we won't add you to a mailing list without asking.</p>
     <div class="form__footer">
       <button class="btn btn--solid" type="submit">Read the issue</button>
       <p class="form__status" role="status" aria-live="polite" data-nl-status></p>
@@ -129,9 +135,9 @@ layout: default
         .then(function (response) { return response.json(); })
         .then(function (result) {
           if (settled) return;
-          // "Company is required." etc.: anything else (an old deploy that
+          // "Company is required.", a bad email: anything else (an old deploy that
           // doesn't know this form, the daily cap) still opens the issue.
-          if (result && result.ok === false && / is required\.$/.test(result.error || "")) {
+          if (result && result.ok === false && / is required\.$|valid email/.test(result.error || "")) {
             clearTimeout(timer);
             settled = true;
             button.disabled = false;

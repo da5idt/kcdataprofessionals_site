@@ -16,7 +16,7 @@
  *      Status.
  * Speaker proposals copy the KCDP organizers only.
  * Newsletter readers (the short form in front of each Data Profession Weekly
- * issue) are only saved to the "Newsletter readers" tab: no email, no Slack.
+ * issue: name, email, company, title) are only saved to the "Newsletter readers" tab: no email, no Slack.
  *
  * Setup and deployment: docs/forms.md in the website repository.
  *
@@ -88,6 +88,7 @@ var FORMS = {
     minFillMs: 1000,   // three short fields that browsers autofill
     fields: [
       { name: "name", label: "Name", required: true, max: 120 },
+      { name: "email", label: "Email", required: true, max: 200, type: "email" },
       { name: "company", label: "Company", required: true, max: 200 },
       { name: "title", label: "Title", required: true, max: 200 },
       { name: "issue", label: "Issue", max: 200 }
