@@ -91,6 +91,7 @@ var FORMS = {
       { name: "email", label: "Email", required: true, max: 200, type: "email" },
       { name: "company", label: "Company", required: true, max: 200 },
       { name: "title", label: "Title", required: true, max: 200 },
+      { name: "meetup_invites", label: "Meetup invites", max: 10, checkbox: true },
       { name: "issue", label: "Issue", max: 200 }
     ]
   }
@@ -192,6 +193,7 @@ function readValues_(form, params, multiParams) {
   var values = {};
   form.fields.forEach(function (field) {
     var raw = field.multiple ? (multiParams[field.name] || []).join(", ") : params[field.name];
+    if (field.checkbox) raw = raw ? "Yes" : "No";   // unticked boxes aren't sent
     values[field.name] = clean_(raw, field.max);
   });
   return values;
