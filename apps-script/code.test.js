@@ -420,11 +420,12 @@ test("newsletter readers are saved without email, Slack or the form daily limit"
   assert.deepEqual(post(reader()), { ok: true });
 
   const rows = sheets["Newsletter readers"].rows;
-  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Email", "Company", "Title", "Meetup invites", "Issue", "Team notes"]);
+  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Email", "Company", "Title", "Meetup invites", "Share with sponsors", "Issue", "Team notes"]);
   assert.equal(rows[1][1], "New");
   assert.equal(rows[1][3], "ada@example.com");
   assert.equal(rows[1][5], "Data Engineer");
   assert.equal(rows[1][6], "Yes");
+  assert.equal(rows[1][7], "No");
   assert.equal(sent.length, 0);
   assert.equal(posts.length, 0);
 

@@ -92,6 +92,7 @@ var FORMS = {
       { name: "company", label: "Company", required: true, max: 200 },
       { name: "title", label: "Title", required: true, max: 200 },
       { name: "meetup_invites", label: "Meetup invites", max: 10, checkbox: true },
+      { name: "share_with_sponsors", label: "Share with sponsors", max: 10, checkbox: true },
       { name: "issue", label: "Issue", max: 200 }
     ]
   }
