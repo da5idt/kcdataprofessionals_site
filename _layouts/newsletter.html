@@ -20,6 +20,7 @@ layout: default
   <script>
     try { if (localStorage.getItem("kcdp-newsletter-reader")) document.documentElement.classList.add("nl-unlocked"); } catch (e) {}
   </script>
+  {% if site.forms.endpoint != "" %}
   <form class="form nl-gate" data-nl-gate method="post" action="{{ site.forms.endpoint }}" accept-charset="UTF-8" aria-labelledby="nl-gate-title">
     <h2 id="nl-gate-title">Read this week's issue</h2>
     <p class="form__intro">Tell us who you are once and every issue opens for you on this device.</p>
@@ -48,6 +49,7 @@ layout: default
       <p class="form__status" role="status" aria-live="polite" data-nl-status></p>
     </div>
   </form>
+  {% endif %}
 
   <div class="nl-gated" data-nl-gated>
   {% if page.top_stories and page.top_stories.size > 0 %}
@@ -62,13 +64,13 @@ layout: default
   {% if page.sections and page.sections.size > 0 %}
   <nav class="nl-toc" aria-label="Sections in this issue">
     <ul>
-      {% for section in page.sections %}<li><a href="#{{ section.name | slugify }}">{{ section.name | escape }}</a></li>{% endfor %}
+      {% for section in page.sections %}<li><a href="#section-{{ section.name | slugify }}">{{ section.name | escape }}</a></li>{% endfor %}
     </ul>
   </nav>
   {% endif %}
 
   {% for section in page.sections %}
-  <section class="nl-section" id="{{ section.name | slugify }}">
+  <section class="nl-section" id="section-{{ section.name | slugify }}">
     <h2 class="nl-section__title">{{ section.name | escape }}</h2>
     {% if section.items and section.items.size > 0 %}
       {% for item in section.items %}{% include newsletter-item.html item=item %}{% endfor %}
@@ -106,19 +108,40 @@ layout: default
       document.documentElement.classList.add("nl-unlocked");
       window.scrollTo(0, 0);
     };
+    var status = form.querySelector("[data-nl-status]");
+    var button = form.querySelector("button[type=submit]");
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       if (!form.reportValidity()) return;
-      var button = form.querySelector("button[type=submit]");
       button.disabled = true;
-      form.querySelector("[data-nl-status]").textContent = "Opening…";
+      status.className = "form__status";
+      status.textContent = "Opening…";
       var data = new URLSearchParams(new FormData(form));
       data.append("_js", "1");
       data.append("_elapsed", String(Date.now() - loadedAt));
       // A reader is never locked out by a network or script problem: the
-      // issue opens whether or not the answers were saved.
-      if (!form.action || form.getAttribute("action") === "") return unlock();
-      fetch(form.action, { method: "POST", body: data }).then(unlock, unlock);
+      // issue opens if the endpoint fails or is slow. Only a validation
+      // message from the script (e.g. a blank field) asks them to fix it.
+      var settled = false;
+      var finish = function () { if (!settled) { settled = true; unlock(); } };
+      var timer = setTimeout(finish, 5000);
+      fetch(form.action, { method: "POST", body: data })
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+          if (settled) return;
+          // "Company is required." etc.: anything else (an old deploy that
+          // doesn't know this form, the daily cap) still opens the issue.
+          if (result && result.ok === false && / is required\.$/.test(result.error || "")) {
+            clearTimeout(timer);
+            settled = true;
+            button.disabled = false;
+            status.className = "form__status is-error";
+            status.textContent = result.error;
+            return;
+          }
+          finish();
+        })
+        .catch(finish);
     });
   })();
 </script>

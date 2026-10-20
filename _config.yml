@@ -44,7 +44,9 @@ footer:
 
 # Collections
 # Data Profession Weekly issues live in _newsletter/, one file per issue.
-# See docs/newsletter.md for the file format.
+# See docs/newsletter.md for the file format. `future` keeps an issue from
+# being skipped when it is merged before its date has started in UTC.
+future: true
 collections:
   newsletter:
     output: true

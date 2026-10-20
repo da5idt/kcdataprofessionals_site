@@ -408,7 +408,7 @@ test("the daily counter keeps only today's count property", () => {
   assert.equal(properties.KCDP_EMAILS, "a@kcdp.org, b@kcdp.org");
 });
 
-test("newsletter readers are saved without email, Slack or the daily limit", () => {
+test("newsletter readers are saved without email, Slack or the form daily limit", () => {
   const { post, sent, posts, sheets } = load({
     props: { DAILY_LIMIT: "1", SLACK_SPEAKERS_WEBHOOK_URL: "https://hooks.slack.com/x" },
   });
@@ -428,4 +428,21 @@ test("newsletter readers are saved without email, Slack or the daily limit", () 
   assert.equal(posts.length, 0);
 
   assert.deepEqual(post(reader({ company: "" })), { ok: false, error: "Company is required." });
+});
+
+test("newsletter readers have their own daily cap and a shorter fill timer", () => {
+  const { post, sheets, properties } = load({ props: { READER_DAILY_LIMIT: "1" } });
+  const reader = (extra = {}) => ({
+    form: "newsletter", _js: "1", _elapsed: "1500",
+    name: "Ada", company: "Acme", title: "Engineer", ...extra,
+  });
+  assert.deepEqual(post(reader()), { ok: true });
+  assert.equal(post(reader()).ok, false);
+  assert.equal(sheets["Newsletter readers"].rows.length, 2);
+  assert.equal(properties["readers:2026-10-14"], "1");
+
+  assert.deepEqual(post(reader({ _elapsed: "500" })), { ok: true });
+  assert.equal(sheets["Newsletter readers"].rows.length, 2);
+  assert.deepEqual(post(speaker({ _elapsed: "1500" })), { ok: true });
+  assert.equal(sheets.Speakers, undefined);
 });

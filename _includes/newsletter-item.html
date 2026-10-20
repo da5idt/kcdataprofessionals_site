@@ -1,6 +1,7 @@
 {% comment %}One newsletter story. Pass item=... and optionally why=true to show the "Why it matters" line.{% endcomment %}
 <article class="nl-item{% if include.why %} nl-item--top{% endif %}">
-  <h3 class="nl-item__title"><a href="{{ include.item.url | escape }}" target="_blank" rel="noopener">{{ include.item.title | escape }}</a></h3>
+  {% assign url = include.item.url | strip %}{% assign scheme = url | slice: 0, 8 | downcase %}
+  <h3 class="nl-item__title">{% if scheme == "https://" or scheme contains "http://" %}<a href="{{ url | escape }}" target="_blank" rel="noopener">{{ include.item.title | escape }}</a>{% else %}{{ include.item.title | escape }}{% endif %}</h3>
   <p class="nl-item__meta">{{ include.item.source | escape }}{% if include.item.published %} · {{ include.item.published | escape }}{% endif %}</p>
   <p class="nl-item__summary">{{ include.item.summary | escape }}</p>
   {% if include.why and include.item.why %}<p class="nl-item__why"><strong>Why it matters:</strong> {{ include.item.why | escape }}</p>{% endif %}
