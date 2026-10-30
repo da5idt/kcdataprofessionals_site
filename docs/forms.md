@@ -1,6 +1,6 @@
 # Sponsorship and speaker forms
 
-The same endpoint also records newsletter readers: the short name, email, company and title form in front of each [Data Profession Weekly](newsletter.md) issue. Those rows are only saved to the `Newsletter readers` tab; no email or Slack post is sent and they don't count toward `DAILY_LIMIT`. They have their own cap, `READER_DAILY_LIMIT` (default 500 a day).
+The same endpoint also records newsletter readers: the short first name, last name, email, company and title form in front of each [Data Profession Weekly](newsletter.md) issue. Those rows are only saved to the `Newsletter readers` tab; no email or Slack post is sent and they don't count toward `DAILY_LIMIT`. They have their own cap, `READER_DAILY_LIMIT` (default 500 a day).
 
 The forms on `/sponsorship` and `/speak` work without moving the site off GitHub Pages and cost nothing to run.
 

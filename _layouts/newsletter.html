@@ -13,7 +13,7 @@ layout: default
 
 <article class="page-body container newsletter">
   {% comment %}
-    Soft gate: readers give their name, email, company and title once, then every
+    Soft gate: readers give their first and last name, email, company and title once, then every
     issue opens. GitHub Pages is static, so the issue is still in the page
     source; this only asks politely. Without JavaScript the issue just shows.
   {% endcomment %}
@@ -31,14 +31,18 @@ layout: default
     </div>
     <div class="form__row">
       <label class="field">
-        <span class="field__label">Name</span>
-        <input type="text" name="name" autocomplete="name" required maxlength="120">
+        <span class="field__label">First name</span>
+        <input type="text" name="first_name" autocomplete="given-name" required maxlength="80">
       </label>
       <label class="field">
-        <span class="field__label">Email</span>
-        <input type="email" name="email" autocomplete="email" required maxlength="200">
+        <span class="field__label">Last name</span>
+        <input type="text" name="last_name" autocomplete="family-name" required maxlength="80">
       </label>
     </div>
+    <label class="field">
+      <span class="field__label">Email</span>
+      <input type="email" name="email" autocomplete="email" required maxlength="200">
+    </label>
     <div class="form__row">
       <label class="field">
         <span class="field__label">Company</span>
