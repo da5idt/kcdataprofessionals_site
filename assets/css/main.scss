@@ -711,6 +711,20 @@ a:hover { color: var(--navy-900); text-decoration-thickness: 2px; }
   color: var(--navy-900);
 }
 .partner__name .icon { color: var(--navy-500); }
+.partner__logo {
+  display: flex;
+  align-items: center;
+  height: 4rem;
+  margin-bottom: 0.5rem;
+}
+.partner__logo img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+}
 .partner__desc { color: var(--text-muted); font-size: 0.9375rem; }
 
 @media (max-width: 52rem) {

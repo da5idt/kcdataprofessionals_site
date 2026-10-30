@@ -150,6 +150,9 @@ excerpt: "**Connecting Kansas City's data community.** Monthly in-person meetups
             {%- if partner.url %}
             <li class="partner">
                 <a href="{{ partner.url }}" target="_blank" rel="noopener noreferrer">
+                    {%- if partner.logo %}
+                    <span class="partner__logo"><img src="{{ partner.logo | relative_url }}" alt="" loading="lazy"></span>
+                    {%- endif %}
                     <span class="partner__name">{{ partner.name }} {% include icon.html name="external" %}</span>
                     <span class="partner__desc">{{ partner.description }}</span>
                 </a>
