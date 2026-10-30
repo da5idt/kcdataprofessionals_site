@@ -87,7 +87,8 @@ var FORMS = {
     saveOnly: true,
     minFillMs: 1000,   // three short fields that browsers autofill
     fields: [
-      { name: "name", label: "Name", required: true, max: 120 },
+      { name: "first_name", label: "First name", required: true, max: 80 },
+      { name: "last_name", label: "Last name", required: true, max: 80 },
       { name: "email", label: "Email", required: true, max: 200, type: "email" },
       { name: "company", label: "Company", required: true, max: 200 },
       { name: "title", label: "Title", required: true, max: 200 },

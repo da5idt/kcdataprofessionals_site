@@ -414,24 +414,27 @@ test("newsletter readers are saved without email, Slack or the form daily limit"
   });
   const reader = (extra = {}) => ({
     form: "newsletter", _js: "1", _elapsed: "9000",
-    name: "Ada Lovelace", email: "ada@example.com", company: "Analytical Engines", meetup_invites: "Yes", title: "Data Engineer", issue: "2026-10-26", ...extra,
+    first_name: "Ada", last_name: "Lovelace", email: "ada@example.com", company: "Analytical Engines", meetup_invites: "Yes", title: "Data Engineer", issue: "2026-10-26", ...extra,
   });
   assert.deepEqual(post(reader()), { ok: true });
   assert.deepEqual(post(reader()), { ok: true });
 
   const rows = sheets["Newsletter readers"].rows;
-  assert.deepEqual([...rows[0]], ["Submitted", "Status", "Name", "Email", "Company", "Title", "Meetup invites", "Share with sponsors", "Issue", "Team notes"]);
+  assert.deepEqual([...rows[0]], ["Submitted", "Status", "First name", "Last name", "Email", "Company", "Title", "Meetup invites", "Share with sponsors", "Issue", "Team notes"]);
   assert.equal(rows[1][1], "New");
-  assert.equal(rows[1][3], "ada@example.com");
-  assert.equal(rows[1][5], "Data Engineer");
-  assert.equal(rows[1][6], "Yes");
-  assert.equal(rows[1][7], "No");
+  assert.equal(rows[1][2], "Ada");
+  assert.equal(rows[1][3], "Lovelace");
+  assert.equal(rows[1][4], "ada@example.com");
+  assert.equal(rows[1][6], "Data Engineer");
+  assert.equal(rows[1][7], "Yes");
+  assert.equal(rows[1][8], "No");
   assert.equal(sent.length, 0);
   assert.equal(posts.length, 0);
 
   post(reader({ meetup_invites: undefined }));
-  assert.equal(rows.at(-1)[6], "No");
+  assert.equal(rows.at(-1)[7], "No");
   assert.deepEqual(post(reader({ company: "" })), { ok: false, error: "Company is required." });
+  assert.deepEqual(post(reader({ last_name: "" })), { ok: false, error: "Last name is required." });
   assert.deepEqual(post(reader({ email: "not-an-email" })), { ok: false, error: "Please enter a valid email address." });
 });
 
@@ -439,7 +442,7 @@ test("newsletter readers have their own daily cap and a shorter fill timer", () 
   const { post, sheets, properties } = load({ props: { READER_DAILY_LIMIT: "1" } });
   const reader = (extra = {}) => ({
     form: "newsletter", _js: "1", _elapsed: "1500",
-    name: "Ada", email: "ada@example.com", company: "Acme", title: "Engineer", ...extra,
+    first_name: "Ada", last_name: "Lovelace", email: "ada@example.com", company: "Acme", title: "Engineer", ...extra,
   });
   assert.deepEqual(post(reader()), { ok: true });
   assert.equal(post(reader()).ok, false);
