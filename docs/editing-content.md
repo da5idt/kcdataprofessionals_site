@@ -87,7 +87,7 @@ slack:
   invite_url: "https://join.slack.com/t/kcdataprofessionals/shared_invite/..."
 ```
 
-The homepage "Join on Slack" button and the `/slack` redirect (`_pages/slack.html`) both read this value. Share `kcdataprofessionals.org/slack` on slides, QR codes and posts instead of the raw invite link, so they keep working after the link is replaced.
+Only the `/slack` redirect (`_pages/slack.html`) reads this value. The Slack workspace is deliberately left off the homepage and the navigation; people join through the QR code on the meetup slide, which points to `kcdataprofessionals.org/slack`. Use that address instead of the raw invite link so the QR code keeps working after the link is replaced.
 
 ## Styling changes
 
