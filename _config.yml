@@ -29,10 +29,10 @@ forms:
 
 
 
-# Slack invite link, used only by the kcdataprofessionals.org/slack redirect
-# that the meetup slide's QR code points to. It is kept off the homepage and
-# the navigation on purpose. Slack invite links expire, so paste a fresh one
-# here when it does (see docs/editing-content.md).
+# Slack invite link, used by the homepage "Join on Slack" button and the
+# kcdataprofessionals.org/slack redirect (reached only from the meetup
+# slide's QR code, not linked on the site). Slack invite links expire, so
+# paste a fresh one here when it does (see docs/editing-content.md).
 slack:
   invite_url: "https://join.slack.com/t/kcdataprofessionals/shared_invite/zt-4eoz4rz0g-UwZnkrOGDJTjqgPKEi7Z6g"
 
