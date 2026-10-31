@@ -29,6 +29,14 @@ forms:
 
 
 
+# Slack invite link, used by the homepage "Join on Slack" button and the
+# kcdataprofessionals.org/slack redirect. Slack invite links expire, so
+# paste a fresh one here when it does (see docs/editing-content.md).
+slack:
+  invite_url: "https://join.slack.com/t/kcdataprofessionals/shared_invite/zt-4eoz4rz0g-UwZnkrOGDJTjqgPKEi7Z6g"
+
+
+
 # Site Footer.
 footer:
   links: # replace the URL's with your own for every link you want to have in your footer.

@@ -12,6 +12,7 @@
 - [Modify header (masthead)](#modify-header-masthead)
 - [Modify footer](#modify-footer)
 - [Update social links](#update-social-links)
+- [Update the Slack invite link](#update-the-slack-invite-link)
 - [Styling changes](#styling-changes)
 - [Safe editing checklist](#safe-editing-checklist)
 
@@ -76,6 +77,17 @@ footer:
 ```
 
 These links are rendered by `_includes/footer.html`. `icon` names an icon in `_includes/icon.html`; add a new `when` branch there for a new network.
+
+## Update the Slack invite link
+
+Slack invite links expire. When the current one does, create a new one in Slack (**Invite people > Copy invite link**) and paste it into `_config.yml`:
+
+```yaml
+slack:
+  invite_url: "https://join.slack.com/t/kcdataprofessionals/shared_invite/..."
+```
+
+The homepage "Join on Slack" button and the `/slack` redirect (`_pages/slack.html`) both read this value. Share `kcdataprofessionals.org/slack` on slides, QR codes and posts instead of the raw invite link, so they keep working after the link is replaced.
 
 ## Styling changes
 
